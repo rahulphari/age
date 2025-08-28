@@ -14,13 +14,21 @@
             --glow-color-low: rgba(52, 211, 153, 0.7);
         }
 
+        @keyframes grid-pan {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: #020617; /* slate-950 */
             background-image: 
                 radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(34, 197, 94, 0.1) 0%, transparent 50%);
-            background-size: 100% 100%;
+                radial-gradient(circle at 75% 75%, rgba(34, 197, 94, 0.1) 0%, transparent 50%),
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 50px 50px, 50px 50px;
+            animation: grid-pan 60s linear infinite;
         }
 
         /* --- Animations & Transitions --- */
@@ -29,12 +37,12 @@
             to { opacity: 1; transform: translateY(0); }
         }
         @keyframes pulse-glow-critical {
-            0%, 100% { box-shadow: 0 0 12px 2px var(--glow-color-critical); }
-            50% { box-shadow: 0 0 24px 8px var(--glow-color-critical); }
+            0%, 100% { box-shadow: 0 0 12px 2px var(--glow-color-critical), inset 0 0 15px var(--glow-color-critical); }
+            50% { box-shadow: 0 0 24px 8px var(--glow-color-critical), inset 0 0 15px var(--glow-color-critical); }
         }
         @keyframes pulse-glow-high {
-            0%, 100% { box-shadow: 0 0 10px 2px var(--glow-color-high); }
-            50% { box-shadow: 0 0 20px 6px var(--glow-color-high); }
+            0%, 100% { box-shadow: 0 0 10px 2px var(--glow-color-high), inset 0 0 15px var(--glow-color-high); }
+            50% { box-shadow: 0 0 20px 6px var(--glow-color-high), inset 0 0 15px var(--glow-color-high); }
         }
         @keyframes glow-animation {
             from { text-shadow: 0 0 2px #facc15; }
@@ -76,8 +84,10 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .hotspot-card-v2:hover { transform: translateY(-5px); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
-        .hotspot-card-v2.severity-critical { animation: pulse-glow-critical 2.5s infinite; }
-        .hotspot-card-v2.severity-high { animation: pulse-glow-high 3s infinite; }
+        .hotspot-card-v2.severity-critical { animation: pulse-glow-critical 2.5s infinite; border-color: var(--glow-color-critical); }
+        .hotspot-card-v2.severity-high { animation: pulse-glow-high 3s infinite; border-color: var(--glow-color-high); }
+        .hotspot-card-v2.severity-medium { border-color: var(--glow-color-medium); }
+        .hotspot-card-v2.severity-low { border-color: var(--glow-color-low); }
         .urgency-ring-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 220px; height: 220px; opacity: 0.1; }
         .urgency-ring-svg { transform: rotate(-90deg); }
         .ring-track { stroke: #334155; }
@@ -97,7 +107,7 @@
         .bucket-color-1 { background-color: #34d399; }
         .bucket-color-2 { background-color: #facc15; }
         .bucket-color-3 { background-color: #f87171; }
-        .hotspot-actions { margin-top: 1rem; display: flex; justify-content: center; gap: 0.5rem; }
+        .hotspot-actions { margin-top: 1rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
         .hotspot-action-btn {
             background-color: rgba(30, 41, 59, 0.8); border: 1px solid #334155;
             color: #94a3b8; font-size: 0.75rem; font-weight: 600;
@@ -111,17 +121,17 @@
         .instruction-text { display: none; }
         body.instructions-on .instruction-text { display: block; }
         .info-icon {
-            display: inline-block; width: 1rem; height: 1rem;
+            display: inline-block; width: 1.25rem; height: 1.25rem;
             background-color: #475569; color: #cbd5e1;
-            border-radius: 50%; text-align: center; font-size: 0.75rem;
-            font-weight: bold; cursor: help; margin-left: 0.5rem;
-            position: relative;
+            border-radius: 50%; text-align: center; font-size: 0.8rem;
+            font-weight: bold; cursor: help;
+            position: relative; line-height: 1.25rem;
         }
         .tooltip {
-            visibility: hidden; width: 220px; background-color: #020617;
-            color: #fff; text-align: center; border-radius: 6px; padding: 8px;
-            position: absolute; z-index: 1; bottom: 125%; left: 50%;
-            margin-left: -110px; opacity: 0; transition: opacity 0.3s;
+            visibility: hidden; width: 280px; background-color: #020617;
+            color: #fff; text-align: left; border-radius: 6px; padding: 12px;
+            position: absolute; z-index: 1; bottom: 150%; left: 50%;
+            margin-left: -140px; opacity: 0; transition: opacity 0.3s;
             border: 1px solid #334155; font-weight: normal; font-size: 0.8rem;
         }
         .info-icon:hover .tooltip { visibility: visible; opacity: 1; }
@@ -134,6 +144,55 @@
             color: #facc15; font-weight: 600; margin-left: 0.5rem;
             animation: glow-animation 1.5s infinite alternate; font-size: 0.8em;
         }
+
+        /* --- System Status HUD --- */
+        .status-hud {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        .status-item {
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+        }
+        .status-label {
+            font-size: 1rem;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+        .status-value {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #f8fafc;
+            line-height: 1;
+        }
+        .status-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+        .status-list li {
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #1e293b;
+        }
+        .status-list li:last-child {
+            border-bottom: none;
+        }
+        .status-list-rank {
+            display: inline-block;
+            width: 2rem;
+            font-weight: 800;
+            color: #64748b;
+        }
+        .status-value.critical { color: var(--glow-color-critical); }
     </style>
 </head>
 <body class="text-slate-200">
@@ -168,7 +227,8 @@
         </div>
 
         <!-- Dashboard View -->
-        <div id="dashboard-view" class="hidden space-y-12 fade-in-up">
+        <div id="dashboard-view" class="hidden space-y-8 fade-in-up">
+            <div id="status-hud-container"></div>
             <div class="flex justify-end items-center">
                 <label class="toggle-label">
                     <span>Urgent Only (ETD < 5h)</span>
@@ -247,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 r.age_hours >= parseFloat(cutoff)
             );
 
-            const modalTitle = `Suggested Cut-off Report for ${ntc} (${pdt})`;
+            const modalTitle = `Ageing List for ${ntc} (${pdt})`;
             openDetailsModal(modalTitle, filteredData, true);
         }
     });
@@ -336,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setTimeout(() => {
                 setupDashboard();
-            }, 1000);
+            }, 1500);
 
         } catch (error) {
             showMessage(`An error occurred: ${error.message}`, true);
@@ -428,12 +488,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p class="text-slate-500 mt-2">Please upload a file with current operational data to activate the dashboard.</p>
                 </div>
             `;
+            document.getElementById('status-hud-container').innerHTML = '';
             return;
         }
 
         const toggle = document.getElementById('show-urgent-toggle');
         const showUrgentOnly = toggle ? toggle.checked : false;
         let summaryData = getSummaryData();
+        
+        renderHUD(summaryData);
+
         if (showUrgentOnly) {
             const fiveHoursFromNow = new Date().getTime() + (5 * 60 * 60 * 1000);
             summaryData = summaryData.filter(item => item.data.soonestETD && item.data.soonestETD.getTime() < fiveHoursFromNow);
@@ -481,12 +545,31 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="pdt-bar-row"><span class="pdt-bar-label">B2B</span><div class="pdt-bar-container">${b2bBar}</div></div>
                         </div>
                         <div class="hotspot-actions">
-                            <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2C,Heavy" data-cutoff="${b2c_heavy_cutoff}" ${!b2c_heavy_cutoff ? 'disabled' : ''}>B2C/H Cut-off (${b2c_heavy_cutoff || 'N/A'})</button>
-                            <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2B" data-cutoff="${b2b_cutoff}" ${!b2b_cutoff ? 'disabled' : ''}>B2B Cut-off (${b2b_cutoff || 'N/A'})</button>
+                            <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2C,Heavy" data-cutoff="${b2c_heavy_cutoff}" ${!b2c_heavy_cutoff ? 'disabled' : ''}>Recommend B2C/H List</button>
+                            <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2B" data-cutoff="${b2b_cutoff}" ${!b2b_cutoff ? 'disabled' : ''}>Recommend B2B List</button>
+                            <div class="info-icon">i<span class="tooltip"><b>Note:</b> Recommended age cut-off is based on the next available ETD and assumes only one connection exists in 24 hours.</span></div>
                         </div>
                     </div>
                 </div>`;
         }).join('');
+    }
+    
+    function renderHUD(summaryData) {
+        const container = document.getElementById('status-hud-container');
+        const totalShipments = fullForecastData.length;
+        const topCritical = summaryData.filter(item => item.severityLevel === 'critical' || item.severityLevel === 'high').sort((a,b) => b.severityScore - a.severityScore).slice(0, 3);
+
+        container.innerHTML = `
+            <div class="status-hud">
+                <div class="status-item"><div class="status-label">Total Actionable Shipments</div><div class="status-value">${totalShipments}</div></div>
+                <div class="status-item">
+                    <div class="status-label">Top Critical NTC's</div>
+                    <ul class="status-list">
+                        ${topCritical.length > 0 ? topCritical.map((item, index) => `<li><span class="status-list-rank">#${index + 1}</span> ${item.ntc}</li>`).join('') : '<li>No critical hotspots</li>'}
+                    </ul>
+                </div>
+            </div>
+        `;
     }
 
     function getCountdownString(etdDate) {
