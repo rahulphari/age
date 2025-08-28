@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGE-SIGHT: Ageing Forecast Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* slate-900 */
+            background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0);
+            background-size: 2.5rem 2.5rem;
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes blink-warning {
+             50% { text-shadow: 0 0 10px #facc15; }
+        }
+        @keyframes glow-animation {
+            from { text-shadow: 0 0 2px #facc15; }
+            to { text-shadow: 0 0 8px #f59e0b, 0 0 10px #f59e0b; }
+        }
+        .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
+        .blinking-recommendation b { animation: blink-warning 1.5s ease-in-out infinite; }
+
+        /* --- UI Component Styles --- */
+        .main-container { max-width: 95vw; margin: 0 auto; padding: 1.5rem; }
+        .card {
+            background-color: rgba(30, 41, 59, 0.8); /* slate-800 with transparency */
+            backdrop-filter: blur(12px);
+            border: 1px solid #334155; /* slate-700 */
+            border-radius: 0.75rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .filter-label { font-size: 0.875rem; font-weight: 500; color: #94a3b8; margin-bottom: 0.5rem; }
+        .filter-input {
+            background-color: #1e293b; border: 1px solid #475569; color: #e2e8f0;
+            border-radius: 0.5rem; padding: 0.6rem 0.8rem; width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .filter-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); }
+        .filter-toggle-group label {
+            background-color: #334155; padding: 0.5rem 1rem; border-radius: 99px; cursor: pointer;
+            transition: all 0.2s; font-size: 0.875rem; border: 1px solid transparent;
+        }
+        .filter-toggle-group input:checked + label { background-color: #2563eb; color: white; font-weight: 600; border-color: #3b82f6; }
+        .primary-btn {
+            background: linear-gradient(45deg, #2563eb, #3b82f6); color: white; font-weight: 600;
+            padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 10px rgba(0,0,0,0.3); }
+        .secondary-btn {
+            background-color: #475569; color: #e2e8f0; font-weight: 600;
+            padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: background-color 0.2s;
+        }
+        .secondary-btn:hover { background-color: #64748b; }
+        .suggestion-btn {
+            background-color: #2563eb; color: white; font-weight: 500;
+            padding: 0.4rem 0.8rem; border-radius: 0.375rem; transition: all 0.2s;
+            font-size: 0.75rem; border: 1px solid #3b82f6;
+        }
+        .suggestion-btn:hover { background-color: #3b82f6; transform: translateY(-1px); }
+        .suggestion-btn:disabled { background-color: #334155; color: #64748b; cursor: not-allowed; border-color: #475569; }
+        
+        /* --- Table Styles --- */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #334155; }
+        .data-table th { background-color: #1e293b; font-weight: 600; color: #cbd5e1; cursor: pointer; user-select: none; }
+        .data-table th .sort-icon { opacity: 0.4; transition: opacity 0.2s, transform 0.2s; display: inline-block; }
+        .data-table th:hover .sort-icon { opacity: 0.7; }
+        .data-table th.sorted-asc .sort-icon, .data-table th.sorted-desc .sort-icon { opacity: 1; color: #60a5fa; }
+        .data-table th.sorted-desc .sort-icon { transform: rotate(180deg); }
+        .data-table tbody tr { transition: background-color 0.2s; }
+        .data-table tbody tr:hover { background-color: #334155; }
+        .ntc-suggestion-glow {
+            color: #facc15; /* A yellow/amber color */
+            font-weight: 600;
+            margin-left: 0.5rem;
+            animation: glow-animation 1.5s infinite alternate;
+            font-size: 0.8em;
+        }
+        
+        /* --- Scrollbar --- */
+        .scrollable-pane::-webkit-scrollbar { width: 8px; }
+        .scrollable-pane::-webkit-scrollbar-track { background: #1e293b; }
+        .scrollable-pane::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        
+        /* --- Summary Panel V6 (Urgent View) Styles --- */
+        .hotspot-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem; }
+        .hotspot-card {
+            background-color: #1e293b; border-radius: 0.5rem; padding: 1rem;
+            display: flex; flex-direction: column; gap: 0.75rem;
+            border-left: 4px solid transparent;
+            transition: background-color 0.2s, border-left-color 0.3s;
+        }
+        .hotspot-card:hover { background-color: #334155; }
+        .hotspot-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .hotspot-title { font-size: 1.25rem; font-weight: 700; color: #e2e8f0; }
+        .hotspot-etd-info { text-align: right; }
+        .hotspot-etd-time { font-weight: 600; color: #e2e8f0; }
+        .hotspot-countdown { font-size: 0.875rem; color: #facc15; font-weight: 500; }
+        .hotspot-total { font-size: 0.875rem; color: #94a3b8; margin-top: -4px; }
+        .hotspot-bars-wrapper { display: flex; flex-direction: column; gap: 0.5rem; }
+        .hotspot-bar-row { display: grid; grid-template-columns: 80px 1fr; align-items: center; gap: 0.75rem; }
+        .hotspot-bar-label { font-size: 0.8rem; font-weight: 500; color: #cbd5e1; text-align: right; }
+        .hotspot-bar-container { display: flex; width: 100%; height: 1.5rem; background-color: #334155; border-radius: 0.25rem; overflow: hidden; }
+        .hotspot-bar-segment {
+            height: 100%; display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 700; transition: filter 0.2s; cursor: pointer;
+        }
+        .hotspot-bar-segment:hover { filter: brightness(1.2); }
+
+        .bucket-color-0 { background-color: #38bdf8; color: #075985; } /* 0 Day */
+        .bucket-color-1 { background-color: #34d399; color: #065f46; } /* 1 Day */
+        .bucket-color-2 { background-color: #facc15; color: #854d0e; } /* 2-4 Days */
+        .bucket-color-3 { background-color: #f87171; color: #991b1b; } /* Above 4 Days */
+        .severity-low { border-left-color: #34d399; }
+        .severity-medium { border-left-color: #facc15; }
+        .severity-high { border-left-color: #f87171; }
+        .severity-critical { border-left-color: #ef4444; }
+
+        /* --- Toggle Switch --- */
+        .toggle-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.875rem; color: #cbd5e1; }
+        .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 20px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: #2563eb; }
+        input:checked + .toggle-slider:before { transform: translateX(14px); }
+
+        /* --- Modal Styles --- */
+        .modal-content { animation: fadeInUp 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="text-slate-200">
+
+<div class="main-container">
+    <!-- Header -->
+    <header class="text-center mb-8">
+        <h1 class="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400">AGE-SIGHT</h1>
+        <p class="mt-2 text-2xl text-slate-300 font-semibold">Ageing Forecast Generator</p>
+    </header>
+
+    <!-- Main Content -->
+    <div id="app-content">
+        <!-- Initial Upload View -->
+        <div id="upload-view" class="max-w-2xl mx-auto text-center fade-in-up">
+            <label for="csv-upload" id="upload-label" class="w-full cursor-pointer bg-slate-800/50 hover:bg-slate-700/70 border-2 border-dashed border-slate-600 rounded-lg flex flex-col items-center justify-center p-12 transition-all">
+                <svg class="w-16 h-16 text-slate-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" /></svg>
+                <span class="font-semibold text-2xl text-slate-200">Upload Outbound EP File</span>
+                <span id="file-name" class="text-base text-slate-400 mt-2">Drag & drop or click to select a .CSV file</span>
+            </label>
+            <input type="file" id="csv-upload" class="hidden" accept=".csv, text/csv">
+            <div id="message-area" class="mt-6 text-center"></div>
+        </div>
+
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="hidden grid grid-cols-1 xl:grid-cols-2 gap-8">
+            
+            <!-- Left Column: Hotspots -->
+            <div class="flex flex-col gap-8">
+                <div class="card p-6 fade-in-up">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xl font-bold text-white">Operational Hotspots</span>
+                        <label class="toggle-label">
+                            <span>Urgent Only (ETD < 5h)</span>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="show-urgent-toggle" checked>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    <div id="summary-panel-container" class="scrollable-pane pr-2" style="max-height: calc(100vh - 250px); overflow-y: auto;">
+                        <div id="summary-panel" class="hotspot-list">
+                            <!-- Summary cards will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Report Generator and Results -->
+            <div class="flex flex-col gap-8">
+                <!-- Filters Panel -->
+                <div class="card p-6 space-y-6 fade-in-up" style="animation-delay: 0.1s;">
+                    <h2 class="text-2xl font-bold text-white">Report Generator</h2>
+                    <div class="bg-slate-900/50 border border-slate-700 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold text-blue-300 mb-3">Proactive Cut-off Recommendation</h3>
+                        <div>
+                            <label for="ntcSearchInput" class="filter-label">1. Select NTC(s) to analyze</label>
+                            <input type="text" id="ntcSearchInput" placeholder="Search for NTC..." class="filter-input mb-2">
+                            <div id="ntcSelectList" class="scrollable-pane bg-slate-900 p-2 rounded-md border-slate-700" style="max-height: 150px; overflow-y: auto;"></div>
+                        </div>
+                        <div class="mt-4">
+                            <label for="reportCutoffInput" class="filter-label">2. Set Cut-off Age (Hours)</label>
+                            <input type="number" id="reportCutoffInput" placeholder="e.g., 24" class="filter-input">
+                            <div id="recommendationText" class="text-sm text-slate-400 mt-2 min-h-[40px]"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="filter-label">Product Type (PDT)</label>
+                            <div id="pdt-filter-group" class="filter-toggle-group flex flex-wrap gap-2"></div>
+                        </div>
+                        <div>
+                            <label class="filter-label">Priority</label>
+                            <div id="priority-filter-group" class="filter-toggle-group flex flex-wrap gap-2"></div>
+                        </div>
+                        <div>
+                            <label for="client-filter" class="filter-label">Client Name Contains</label>
+                            <input type="text" id="client-filter" placeholder="e.g., Amazon" class="filter-input">
+                        </div>
+                        <div>
+                            <label class="filter-label">Age Range (Hours)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="age-min" placeholder="Min" class="filter-input">
+                                <input type="number" id="age-max" placeholder="Max" class="filter-input">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-700">
+                        <button id="reset-filters-btn" class="secondary-btn w-full">Reset</button>
+                        <button id="apply-filters-btn" class="primary-btn w-full">Generate Report</button>
+                    </div>
+                </div>
+
+                <!-- Results Panel -->
+                <div class="card p-6 fade-in-up" style="animation-delay: 0.2s;">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
+                        <h2 id="results-title" class="text-2xl font-bold text-white">Shipment Details</h2>
+                    </div>
+                    <div id="results-table-container" class="overflow-x-auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div id="detailsModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center p-4">
+    <div class="modal-content bg-slate-800 p-6 rounded-lg shadow-2xl w-full max-w-5xl border border-slate-600 flex flex-col">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="detailsModalTitle" class="text-2xl font-bold text-white">Details</h3>
+            <div id="modal-actions" class="flex items-center gap-4">
+                <!-- Action buttons are dynamically inserted here -->
+            </div>
+        </div>
+        <div id="detailsModalContent" class="scrollable-pane pr-2" style="max-height: 70vh; overflow-y: auto;"></div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Constants and State ---
+    const WBN_BASE_URL_NUMERIC = "https://hq.delhivery.com/p/pntrzz/";
+    const WBN_BASE_URL_ALPHANUM = "https://hq.delhivery.com/bag/";
+    let fullForecastData = null;
+    let currentTableData = [];
+    let currentSort = { key: 'age_hours', order: 'desc' };
+    let countdownInterval = null;
+    let modalCurrentData = []; // Store data for the currently open modal
+    let hasPutawayLocation = false; // Flag to check if the CSV has the required column
+
+    // --- DOM Element References ---
+    const uploadView = document.getElementById('upload-view');
+    const dashboardView = document.getElementById('dashboard-view');
+    const csvUpload = document.getElementById('csv-upload');
+    const fileNameEl = document.getElementById('file-name');
+    const messageArea = document.getElementById('message-area');
+    const resultsTitle = document.getElementById('results-title');
+    const resultsTableContainer = document.getElementById('results-table-container');
+    const summaryPanel = document.getElementById('summary-panel');
+    const showUrgentToggle = document.getElementById('show-urgent-toggle');
+    const detailsModal = document.getElementById('detailsModal');
+    const detailsModalTitle = document.getElementById('detailsModalTitle');
+    const detailsModalContent = document.getElementById('detailsModalContent');
+    const modalActions = document.getElementById('modal-actions');
+
+    // --- Event Listeners ---
+    csvUpload.addEventListener('change', (e) => handleFileUpload(e.target.files));
+    
+    dashboardView.addEventListener('click', (e) => {
+        if (e.target.id === 'apply-filters-btn') applyFilters();
+        if (e.target.id === 'reset-filters-btn') resetFilters();
+
+        const th = e.target.closest('th[data-sort-key]');
+        if (th) handleSort(th.dataset.sortKey);
+
+        const summarySegment = e.target.closest('.hotspot-bar-segment');
+        if (summarySegment) {
+            const { ntc, pdt, bucket } = summarySegment.dataset;
+            const pdtsToFilter = pdt.split(',');
+            const filtered = fullForecastData.filter(r => 
+                r.ntc === ntc && 
+                pdtsToFilter.includes(r.pdt) && 
+                r.age_bucket === bucket
+            );
+            openDetailsModal(`Details for ${ntc} > ${pdt} > ${bucket}`, filtered, false);
+        }
+
+        const cutoffBtn = e.target.closest('.suggestion-btn');
+        if (cutoffBtn) {
+            const { ntc, pdt, cutoff } = cutoffBtn.dataset;
+            if (!cutoff || cutoff === 'null') return; 
+
+            const pdtsToFilter = pdt.split(',');
+            const filteredData = fullForecastData.filter(r => 
+                r.ntc === ntc &&
+                pdtsToFilter.includes(r.pdt) &&
+                r.age_hours >= parseFloat(cutoff)
+            );
+
+            const modalTitle = `Suggested Cut-off Report for ${ntc} (${pdt})`;
+            openDetailsModal(modalTitle, filteredData, true);
+        }
+    });
+
+    dashboardView.addEventListener('change', (e) => {
+        if (e.target.closest('#ntcSelectList')) updateRecommendations();
+        if (e.target.id === 'show-urgent-toggle') renderSummaryPanel();
+    });
+
+    dashboardView.addEventListener('input', (e) => {
+        if (e.target.id === 'ntcSearchInput') filterNTCList(e.target.value);
+    });
+
+    // Modal Events - delegated from the modalActions container
+    modalActions.addEventListener('click', e => {
+        const target = e.target.closest('button');
+        if (!target) return;
+
+        if (target.id === 'closeDetailsModal') closeAllModals();
+        if (target.id === 'copyDetailsBtn') copyModalTableData(target);
+        if (target.id === 'copyForChatBtn') copyModalChatData(target);
+        if (target.id === 'recommendPickSpacesBtn') showPickSpaces();
+        if (target.id === 'backToDetailsBtn') renderTable(modalCurrentData, detailsModalContent, null);
+        if (target.id === 'copyLocationsBtn') copyPickLocations(target);
+    });
+    detailsModal.addEventListener('click', (e) => { if (e.target === detailsModal) closeAllModals(); });
+
+
+    // --- File Handling and Processing ---
+    function handleFileUpload(files) {
+        const file = files[0];
+        if (!file || !file.type.match('text/csv')) {
+            if (file) showMessage("Please upload a valid CSV file.", true);
+            return;
+        }
+        fileNameEl.textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = (event) => processCsvData(event.target.result);
+        reader.onerror = () => showMessage("Error reading file.", true);
+        reader.readAsText(file);
+    }
+
+    function parseCsvLine(line) {
+        const results = [];
+        const regex = /(?:^|,)(\"(?:[^\"]+|\"\")*\"|[^,]*)/g;
+        let match;
+        while (match = regex.exec(line)) {
+            let value = match[1];
+            if (value.startsWith('"') && value.endsWith('"')) {
+                value = value.slice(1, -1).replace(/""/g, '"');
+            }
+            results.push(value.trim());
+        }
+        return results;
+    }
+
+    function processCsvData(csvString) {
+        showMessage('Processing Forecast Data...', false);
+        try {
+            const lines = csvString.trim().split('\n');
+            const headerLine = lines[0].trim();
+            const rawHeaders = parseCsvLine(headerLine);
+            const headers = rawHeaders.map(h => h.replace(/\s+/g, '_').toLowerCase());
+            
+            const requiredHeaders = ['bag_id', 'incoming_time', 'pdt', 'bag_status', 'is_lock', 'ntc_used'];
+            if (!requiredHeaders.every(h => headers.includes(h))) {
+                throw new Error(`Invalid Outbound EP file. Missing required columns: ${requiredHeaders.filter(h => !headers.includes(h)).join(', ')}`);
+            }
+            
+            // Check for the optional but important putaway_location
+            hasPutawayLocation = headers.includes('putaway_location');
+
+            const data = lines.slice(1).map(line => {
+                const values = parseCsvLine(line.trim());
+                const obj = {};
+                headers.forEach((header, i) => { obj[header] = values[i] || ''; });
+                return obj;
+            });
+
+            fullForecastData = analyzeAndEnrichData(data);
+
+            if (fullForecastData && fullForecastData.length > 0) {
+                setupDashboard();
+            } else {
+                showMessage('No valid forecast data found. Check file content and ensure it contains shipments with bag_status="in_center" and is_lock="FALSE".', true);
+            }
+        } catch (error) {
+            console.error("CSV Processing Error:", error);
+            showMessage(`An error occurred: ${error.message}`, true);
+        }
+    }
+
+    function analyzeAndEnrichData(data) {
+        const now = new Date();
+        return data
+            .filter(row => row.bag_status && row.is_lock && row.bag_status.toLowerCase() === 'in_center' && row.is_lock.toUpperCase() === 'FALSE')
+            .map(row => {
+                const incomingDate = new Date(row.incoming_time.replace(' ', 'T'));
+                if (isNaN(incomingDate.getTime())) return null;
+
+                const age_hours = Math.max(0, (now - incomingDate) / (1000 * 60 * 60));
+                
+                let age_bucket;
+                if (age_hours < 24) age_bucket = '0 Day';
+                else if (age_hours < 48) age_bucket = '1 Day';
+                else if (age_hours < 96) age_bucket = '2-4 Days';
+                else age_bucket = 'Above 4 Days';
+
+                const cleanedBagId = (row.bag_id || '').replace(/[^a-zA-Z0-9]/g, '');
+                const isNumeric = /^\d+$/.test(cleanedBagId);
+                const url = isNumeric ? `${WBN_BASE_URL_NUMERIC}${cleanedBagId}/` : `${WBN_BASE_URL_ALPHANUM}${cleanedBagId}/`;
+
+                const ntcUsed = row.ntc_used || 'Unknown';
+                const ntcSuggested = row.ntc_suggested_by_cluster || 'Unknown';
+                const ntcMismatch = ntcUsed !== 'Unknown' && ntcSuggested !== 'Unknown' && ntcUsed !== ntcSuggested;
+
+                return { 
+                    ...row, 
+                    wbn: cleanedBagId, 
+                    url: url, 
+                    age_hours: parseFloat(age_hours.toFixed(2)), 
+                    age_bucket,
+                    pdt: row.pdt || 'Unknown', 
+                    ntc: ntcUsed,
+                    ntc_suggested: ntcSuggested,
+                    ntc_mismatch: ntcMismatch,
+                    client: row.client || 'Unknown', 
+                    priority: row.priority || 'Unknown' 
+                };
+            })
+            .filter(Boolean);
+    }
+    
+    // --- Dashboard Setup and Rendering ---
+    function setupDashboard() {
+        uploadView.classList.add('hidden');
+        dashboardView.classList.remove('hidden');
+        dashboardView.classList.add('grid');
+
+        renderSummaryPanel();
+
+        const allNTCs = [...new Set(fullForecastData.map(r => r.ntc))].sort();
+        const allPDTs = [...new Set(fullForecastData.map(r => r.pdt))].sort();
+        const allPriorities = [...new Set(fullForecastData.map(r => r.priority))].sort();
+
+        document.getElementById('ntcSelectList').innerHTML = allNTCs.map(ntc => `
+            <div class="ntc-item p-1"><label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                <input type="checkbox" value="${ntc}" class="form-checkbox bg-slate-700 border-slate-500 rounded text-blue-500 focus:ring-blue-500">
+                <span>${ntc}</span>
+            </label></div>
+        `).join('');
+
+        document.getElementById('pdt-filter-group').innerHTML = allPDTs.map(pdt => `
+            <div><input type="checkbox" id="pdt-${pdt}" value="${pdt}" class="hidden"><label for="pdt-${pdt}">${pdt}</label></div>
+        `).join('');
+        
+        document.getElementById('priority-filter-group').innerHTML = allPriorities.map(p => `
+            <div><input type="checkbox" id="pri-${p}" value="${p}" class="hidden"><label for="pri-${p}">${p}</label></div>
+        `).join('');
+
+        applyFilters();
+    }
+
+    function calculateCutoff(shipments) {
+        const now = new Date();
+        const relevantShipments = shipments.filter(r => r.etd && new Date(r.etd.replace(' ', 'T')) > now);
+        if (relevantShipments.length === 0) return null;
+
+        const nextETD = new Date(Math.min(...relevantShipments.map(r => new Date(r.etd.replace(' ', 'T')))));
+        const timeUntilNextETD_hours = (nextETD - now) / (1000 * 60 * 60);
+        const cutoffFor24hSLA = 24 - timeUntilNextETD_hours;
+        
+        return cutoffFor24hSLA > 0 ? cutoffFor24hSLA.toFixed(1) : null;
+    }
+
+    function getSummaryData() {
+        const summary = fullForecastData.reduce((acc, row) => {
+            const { ntc, pdt, age_bucket, etd } = row;
+            if (!acc[ntc]) {
+                acc[ntc] = {
+                    total: 0,
+                    b2c_heavy: { '0 Day': 0, '1 Day': 0, '2-4 Days': 0, 'Above 4 Days': 0, total: 0 },
+                    b2b: { '0 Day': 0, '1 Day': 0, '2-4 Days': 0, 'Above 4 Days': 0, total: 0 },
+                    soonestETD: null
+                };
+            }
+            
+            const pdtGroup = (pdt === 'B2B') ? 'b2b' : 'b2c_heavy';
+            acc[ntc][pdtGroup][age_bucket]++;
+            acc[ntc][pdtGroup].total++;
+            acc[ntc].total++;
+            
+            if (etd) {
+                const etdDate = new Date(etd.replace(' ', 'T'));
+                const now = new Date();
+                if (!isNaN(etdDate) && etdDate > now && (!acc[ntc].soonestETD || etdDate < acc[ntc].soonestETD)) {
+                    acc[ntc].soonestETD = etdDate;
+                }
+            }
+            
+            return acc;
+        }, {});
+
+        return Object.entries(summary).map(([ntc, data]) => {
+            const ntcShipments = fullForecastData.filter(r => r.ntc === ntc);
+            const b2cHeavyShipments = ntcShipments.filter(r => r.pdt !== 'B2B');
+            const b2bShipments = ntcShipments.filter(r => r.pdt === 'B2B');
+
+            const severeCount = data.b2c_heavy['2-4 Days'] + data.b2c_heavy['Above 4 Days'] + data.b2b['2-4 Days'] + data.b2b['Above 4 Days'];
+            const severityScore = (data.b2c_heavy['1 Day'] + data.b2b['1 Day']) * 1 +
+                                    (data.b2c_heavy['2-4 Days'] + data.b2b['2-4 Days']) * 3 +
+                                    (data.b2c_heavy['Above 4 Days'] + data.b2b['Above 4 Days']) * 5;
+            
+            let severityLevel = 'low';
+            if (severityScore > data.total * 0.5) severityLevel = 'medium';
+            if (severityScore > data.total) severityLevel = 'high';
+            if (severeCount > 20 && (severeCount / data.total) > 0.3) severityLevel = 'critical';
+
+            return { 
+                ntc, 
+                data, 
+                severityScore, 
+                severityLevel,
+                b2c_heavy_cutoff: calculateCutoff(b2cHeavyShipments),
+                b2b_cutoff: calculateCutoff(b2bShipments)
+            };
+        });
+    }
+
+    function renderSummaryPanel() {
+        const showUrgentOnly = showUrgentToggle.checked;
+        let summaryData = getSummaryData();
+        const now = new Date();
+        const fiveHoursFromNow = now.getTime() + (5 * 60 * 60 * 1000);
+
+        if (showUrgentOnly) {
+            summaryData = summaryData.filter(item => item.data.soonestETD && item.data.soonestETD.getTime() < fiveHoursFromNow);
+        }
+
+        summaryData.sort((a, b) => b.severityScore - a.severityScore);
+
+        const ageBuckets = ['0 Day', '1 Day', '2-4 Days', 'Above 4 Days'];
+
+        if (summaryData.length === 0) {
+            summaryPanel.innerHTML = `<p class="text-slate-400 text-center col-span-full">No NTCs match the current view.</p>`;
+            return;
+        }
+
+        summaryPanel.innerHTML = summaryData.map(({ ntc, data, severityLevel, b2c_heavy_cutoff, b2b_cutoff }) => {
+            const b2cHeavyBar = ageBuckets.map((bucket, i) => {
+                const count = data.b2c_heavy[bucket];
+                if (count === 0) return '';
+                const percentage = data.b2c_heavy.total > 0 ? (count / data.b2c_heavy.total) * 100 : 0;
+                return `<div class="hotspot-bar-segment bucket-color-${i}" style="width: ${percentage}%" data-ntc="${ntc}" data-pdt="B2C,Heavy" data-bucket="${bucket}" title="${bucket}: ${count}"></div>`;
+            }).join('');
+
+            const b2bBar = ageBuckets.map((bucket, i) => {
+                const count = data.b2b[bucket];
+                if (count === 0) return '';
+                const percentage = data.b2b.total > 0 ? (count / data.b2b.total) * 100 : 0;
+                return `<div class="hotspot-bar-segment bucket-color-${i}" style="width: ${percentage}%" data-ntc="${ntc}" data-pdt="B2B" data-bucket="${bucket}" title="${bucket}: ${count}"></div>`;
+            }).join('');
+            
+            const etdString = data.soonestETD ? data.soonestETD.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A';
+
+            return `
+                <div class="hotspot-card severity-${severityLevel}">
+                    <div class="hotspot-header">
+                        <div>
+                            <h3 class="hotspot-title">${ntc}</h3>
+                            <div class="hotspot-total">Total: ${data.total}</div>
+                        </div>
+                        <div class="hotspot-etd-info">
+                            <div class="hotspot-etd-time">ETD: ${etdString}</div>
+                            ${data.soonestETD ? `<div class="hotspot-countdown" data-etd="${data.soonestETD.toISOString()}"></div>` : ''}
+                        </div>
+                    </div>
+                    <div class="hotspot-bars-wrapper">
+                        <div class="hotspot-bar-row">
+                            <span class="hotspot-bar-label">B2C/Heavy (${data.b2c_heavy.total})</span>
+                            <div class="hotspot-bar-container">${b2cHeavyBar}</div>
+                        </div>
+                        <div class="hotspot-bar-row">
+                            <span class="hotspot-bar-label">B2B (${data.b2b.total})</span>
+                            <div class="hotspot-bar-container">${b2bBar}</div>
+                        </div>
+                    </div>
+                    <div class="pt-3 mt-3 border-t border-slate-700/50 flex justify-end items-center gap-2">
+                        <span class="text-xs text-slate-400 mr-auto">View Suggested Cut-off:</span>
+                        <button class="suggestion-btn" data-ntc="${ntc}" data-pdt="B2C,Heavy" data-cutoff="${b2c_heavy_cutoff}" ${!b2c_heavy_cutoff ? 'disabled' : ''}>
+                            B2C/Heavy (${b2c_heavy_cutoff || 'N/A'})
+                        </button>
+                        <button class="suggestion-btn" data-ntc="${ntc}" data-pdt="B2B" data-cutoff="${b2b_cutoff}" ${!b2b_cutoff ? 'disabled' : ''}>
+                            B2B (${b2b_cutoff || 'N/A'})
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        startCountdownTimers();
+    }
+
+    function renderTable(data, container = resultsTableContainer, titleEl = resultsTitle, isSuggestion = false) {
+        currentTableData = data; // Keep a reference to the data being displayed
+        const count = data.length;
+        if (titleEl) {
+            titleEl.textContent = `Shipment Details (${count} Found)`;
+        }
+
+        // Set up modal action buttons for the table view
+        setupModalActions('table', isSuggestion);
+
+        if (count === 0) {
+            container.innerHTML = `<p class="text-slate-400 p-8 text-center">No shipments match the current filters.</p>`;
+            return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'data-table';
+        table.innerHTML = `
+            <thead><tr>
+                <th data-sort-key="wbn">Bag ID <span class="sort-icon">▲</span></th>
+                <th data-sort-key="age_hours">Age (Hours) <span class="sort-icon">▲</span></th>
+                ${hasPutawayLocation ? '<th data-sort-key="putaway_location">Location</th>' : ''}
+                <th data-sort-key="pdt">PDT <span class="sort-icon">▲</span></th>
+                <th data-sort-key="priority">Priority <span class="sort-icon">▲</span></th>
+                <th data-sort-key="ntc">NTC <span class="sort-icon">▲</span></th>
+                <th data-sort-key="client">Client <span class="sort-icon">▲</span></th>
+            </tr></thead>
+            <tbody>
+            ${data.map(wbn => `
+                <tr>
+                    <td><a href="${wbn.url}" target="_blank" class="text-blue-400 hover:underline">${wbn.wbn}</a></td>
+                    <td class="${wbn.age_hours >= 48 ? 'text-red-400 font-bold' : ''}">${wbn.age_hours}</td>
+                    ${hasPutawayLocation ? `<td>${wbn.putaway_location || 'N/A'}</td>` : ''}
+                    <td>${wbn.pdt}</td>
+                    <td>${wbn.priority}</td>
+                    <td>
+                        ${wbn.ntc}
+                        ${wbn.ntc_mismatch ? `<span class="ntc-suggestion-glow" title="Suggested: ${wbn.ntc_suggested}">*${wbn.ntc_suggested}</span>` : ''}
+                    </td>
+                    <td class="truncate" title="${wbn.client}">${wbn.client}</td>
+                </tr>
+            `).join('')}
+            </tbody>`;
+        
+        container.innerHTML = '';
+        container.appendChild(table);
+        if (container === resultsTableContainer) {
+            updateSortIcons();
+        }
+    }
+
+    // --- Filtering and Sorting Logic ---
+    function applyFilters() {
+        const selectedNTCs = [...document.querySelectorAll('#ntcSelectList input:checked')].map(el => el.value);
+        const cutoff = parseFloat(document.getElementById('reportCutoffInput').value) || null;
+        const selectedPdts = [...document.querySelectorAll('#pdt-filter-group input:checked')].map(el => el.value);
+        const selectedPriorities = [...document.querySelectorAll('#priority-filter-group input:checked')].map(el => el.value);
+        const ageMin = parseFloat(document.getElementById('age-min').value) || 0;
+        const ageMax = parseFloat(document.getElementById('age-max').value) || Infinity;
+        const clientFilter = document.getElementById('client-filter').value.toLowerCase();
+
+        let filteredData = fullForecastData.filter(r => {
+            const ntcMatch = selectedNTCs.length === 0 || selectedNTCs.includes(r.ntc);
+            const cutoffMatch = cutoff === null || r.age_hours >= cutoff;
+            const pdtMatch = selectedPdts.length === 0 || selectedPdts.includes(r.pdt);
+            const priorityMatch = selectedPriorities.length === 0 || selectedPriorities.includes(r.priority);
+            const ageMatch = r.age_hours >= ageMin && r.age_hours <= ageMax;
+            const clientMatch = clientFilter === "" || r.client.toLowerCase().includes(clientFilter);
+            return ntcMatch && cutoffMatch && pdtMatch && priorityMatch && ageMatch && clientMatch;
+        });
+        
+        handleSort(currentSort.key, false, filteredData);
+    }
+    
+    function resetFilters() {
+        document.querySelectorAll('#dashboard-view input[type="checkbox"]').forEach(el => el.checked = false);
+        document.querySelectorAll('#dashboard-view input[type="number"], #dashboard-view input[type="text"]').forEach(el => el.value = '');
+        document.getElementById('recommendationText').innerHTML = '';
+        applyFilters();
+    }
+
+    function handleSort(key, userInitiated = true, dataToSort = currentTableData) {
+        if (userInitiated) {
+            currentSort.order = (currentSort.key === key && currentSort.order === 'desc') ? 'asc' : 'desc';
+            currentSort.key = key;
+        }
+        
+        const sortedData = [...dataToSort].sort((a, b) => {
+            let valA = a[key] ?? ''; let valB = b[key] ?? '';
+            if (key === 'age_hours') return currentSort.order === 'asc' ? valA - valB : valB - valA;
+            valA = String(valA).toLowerCase(); valB = String(valB).toLowerCase();
+            if (valA < valB) return currentSort.order === 'asc' ? -1 : 1;
+            if (valA > valB) return currentSort.order === 'asc' ? 1 : -1;
+            return 0;
+        });
+        
+        renderTable(sortedData, resultsTableContainer, resultsTitle);
+    }
+
+    function updateSortIcons() {
+        document.querySelectorAll('#results-table-container th[data-sort-key]').forEach(h => {
+            h.classList.remove('sorted-asc', 'sorted-desc');
+            if (currentSort.key === h.dataset.sortKey) {
+                h.classList.add(currentSort.order === 'asc' ? 'sorted-asc' : 'sorted-desc');
+            }
+        });
+    }
+    
+    // --- Countdown and Recommendation ---
+    function startCountdownTimers() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+            document.querySelectorAll('.hotspot-countdown').forEach(el => {
+                const etd = new Date(el.dataset.etd);
+                const now = new Date();
+                const diff = etd - now;
+
+                if (diff <= 0) {
+                    el.textContent = 'Departed';
+                    return;
+                }
+
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                el.textContent = `in ${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+            });
+        }, 1000);
+    }
+
+    function updateRecommendations() {
+        const recommendationText = document.getElementById('recommendationText');
+        const reportCutoffInput = document.getElementById('reportCutoffInput');
+        const selectedNTCs = [...document.querySelectorAll('#ntcSelectList input:checked')].map(el => el.value);
+
+        if (selectedNTCs.length === 0) { recommendationText.innerHTML = ''; return; }
+
+        const relevantShipments = fullForecastData.filter(r => selectedNTCs.includes(r.ntc));
+        const cutoff = calculateCutoff(relevantShipments);
+        
+        if (cutoff) {
+            reportCutoffInput.value = cutoff;
+            const nextETD = new Date(Math.min(...relevantShipments.filter(r => r.etd && new Date(r.etd.replace(' ', 'T')) > new Date()).map(r => new Date(r.etd.replace(' ', 'T')))));
+            recommendationText.innerHTML = `<span class="blinking-recommendation">Set cut-off to <b class="text-amber-300 text-lg">${cutoff}h</b> to meet 24h SLA.</span>
+            <br><span class="text-xs text-slate-500">Based on soonest ETD at ${nextETD.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</span>`;
+        } else {
+            recommendationText.innerHTML = 'No immediate risk to 24h SLA based on next ETD.';
+        }
+    }
+
+    function filterNTCList(searchTerm) {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        document.querySelectorAll('.ntc-item').forEach(item => {
+            const ntcName = item.textContent.toLowerCase();
+            item.style.display = ntcName.includes(lowerCaseSearchTerm) ? '' : 'none';
+        });
+    }
+
+    // --- Modal and Copy Functions ---
+    function openDetailsModal(title, data, isSuggestion) {
+        modalCurrentData = data; // Store the data for potential actions
+        detailsModalTitle.textContent = title;
+        renderTable(data, detailsModalContent, null, isSuggestion);
+        detailsModal.classList.remove('hidden');
+        detailsModal.classList.add('flex');
+    }
+
+    function showPickSpaces() {
+        const locations = [...new Set(modalCurrentData.map(item => item.putaway_location).filter(Boolean))];
+        
+        setupModalActions('locations'); // Switch to location view buttons
+        
+        if (locations.length === 0) {
+            detailsModalContent.innerHTML = `<p class="text-slate-400 p-8 text-center">No putaway locations found for these shipments.</p>`;
+            return;
+        }
+
+        detailsModalContent.innerHTML = `
+            <div class="flex flex-wrap gap-3 p-4">
+                ${locations.sort().map(loc => `<span class="bg-slate-700 text-slate-200 font-mono text-lg py-2 px-4 rounded-md">${loc}</span>`).join('')}
+            </div>
+        `;
+    }
+
+    function setupModalActions(view, isSuggestion = false) {
+        let buttonsHTML = '';
+        if (view === 'table') {
+            buttonsHTML += `
+                <button id="copyForChatBtn" class="bg-sky-600 hover:bg-sky-700 text-white text-sm font-bold py-2 px-4 rounded-full">Copy for Chat</button>
+                <button id="copyDetailsBtn" class="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-full">Copy Table Data</button>
+            `;
+            if (isSuggestion && hasPutawayLocation) {
+                buttonsHTML += `<button id="recommendPickSpacesBtn" class="bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold py-2 px-4 rounded-full">Recommend Pick Spaces</button>`;
+            }
+        } else if (view === 'locations') {
+            buttonsHTML += `
+                <button id="backToDetailsBtn" class="bg-slate-600 hover:bg-slate-700 text-white text-sm font-bold py-2 px-4 rounded-full">Back to Details</button>
+                <button id="copyLocationsBtn" class="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-full">Copy Locations</button>
+            `;
+        }
+
+        buttonsHTML += `
+            <button id="closeDetailsModal" class="text-slate-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        `;
+        modalActions.innerHTML = buttonsHTML;
+    }
+
+    function closeAllModals() {
+        detailsModal.classList.add('hidden');
+        detailsModal.classList.remove('flex');
+        modalCurrentData = []; // Clear data on close
+    }
+
+    function copyToClipboard(data, button) {
+        navigator.clipboard.writeText(data).then(() => {
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            setTimeout(() => { button.textContent = originalText; }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            const textarea = document.createElement('textarea');
+            textarea.value = data; document.body.appendChild(textarea);
+            textarea.select(); document.execCommand('copy');
+            document.body.removeChild(textarea);
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            setTimeout(() => { button.textContent = originalText; }, 2000);
+        });
+    }
+
+    function copyModalTableData(button) {
+        const table = detailsModalContent.querySelector('table');
+        if (!table) return;
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim().replace(' ▲', ''));
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        const dataToCopy = rows.map(row => Array.from(row.cells).map(cell => cell.textContent.trim()).join('\t')).join('\n');
+        const finalString = `${headers.join('\t')}\n${dataToCopy}`;
+        copyToClipboard(finalString, button);
+    }
+
+    function copyModalChatData(button) {
+        const table = detailsModalContent.querySelector('table');
+        if (!table) return;
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        const ntcIndex = hasPutawayLocation ? 5 : 4; // Adjust index based on whether location column is present
+        const bagIdIndex = 0;
+
+        const groupedByNtc = rows.reduce((acc, row) => {
+            const ntc = row.cells[ntcIndex].textContent.trim();
+            const bagId = row.cells[bagIdIndex].textContent.trim();
+            if (!acc[ntc]) acc[ntc] = [];
+            acc[ntc].push(bagId);
+            return acc;
+        }, {});
+
+        let chatString = '';
+        for (const ntc in groupedByNtc) {
+            chatString += `${ntc}\n`;
+            chatString += groupedByNtc[ntc].join('\n');
+            chatString += '\n\n';
+        }
+        copyToClipboard(chatString.trim(), button);
+    }
+    
+    function copyPickLocations(button) {
+        const locations = [...detailsModalContent.querySelectorAll('span')].map(span => span.textContent.trim());
+        if (locations.length > 0) {
+            copyToClipboard(locations.join('\n'), button);
+        }
+    }
+
+    // --- General Utility Functions ---
+    function showMessage(msg, isError) {
+        messageArea.innerHTML = msg;
+        messageArea.className = `mt-4 text-center p-3 rounded-md ${isError ? 'text-red-200 bg-red-900/40' : 'text-blue-200 bg-blue-900/40'}`;
+    }
+});
+</script>
+
+</body>
+</html>
