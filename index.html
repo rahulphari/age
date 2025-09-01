@@ -52,25 +52,15 @@
 
         /* --- UI Component Styles --- */
         .main-container { max-width: 95vw; margin: 0 auto; padding: 1.5rem; }
-        .primary-btn {
-            background: linear-gradient(45deg, #3b82f6, #2563eb); color: white; font-weight: 600;
-            padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-        }
-        .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 20px rgba(59, 130, 246, 0.4); }
-        .secondary-btn {
-            background-color: #334155; color: #e2e8f0; font-weight: 600;
-            padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: background-color 0.2s;
-        }
-        .secondary-btn:hover { background-color: #475569; }
-
+        
         /* --- Hotspot Card Styles --- */
         .hotspot-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.5rem;
         }
         .hotspot-card-v2 {
-            position: relative; border-radius: 1rem; padding: 1.5rem;
+            position: relative; border-radius: 1rem; padding: 1.25rem;
             display: flex; flex-direction: column; justify-content: space-between;
             overflow: hidden; border: 1px solid #334155;
             background: radial-gradient(circle at center, rgba(30, 41, 59, 0.5) 0%, transparent 70%);
@@ -79,28 +69,19 @@
         .hotspot-card-v2:hover { transform: translateY(-5px); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
         .hotspot-card-v2.severity-critical { animation: pulse-glow-critical 2.5s infinite; border-color: var(--glow-color-critical); }
         .hotspot-card-v2.severity-high { animation: pulse-glow-high 3s infinite; border-color: var(--glow-color-high); }
-        .hotspot-card-v2.severity-medium { border-color: var(--glow-color-medium); }
-        .hotspot-card-v2.severity-low { border-color: var(--glow-color-low); }
         
-        .hotspot-main-content { position: relative; text-align: center; padding: 1rem 0; }
-        .hotspot-ntc { font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 900; color: #f8fafc; line-height: 1.1; word-break: break-word; }
-        .hotspot-total-count { font-size: 1rem; font-weight: 500; color: #94a3b8; }
+        .hotspot-header { text-align: center; }
+        .hotspot-ntc { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 900; color: #f8fafc; line-height: 1.1; word-break: break-word; }
+        .hotspot-total-count { font-size: 0.9rem; font-weight: 500; color: #94a3b8; }
         .hotspot-etd-display { font-size: 1rem; font-weight: 600; color: #facc15; }
         
-        .age-breakdown-table { width: 80%; margin: 1rem auto 0; font-size: 0.875rem; border-collapse: collapse; }
-        .age-breakdown-table td { padding: 0.25rem 0.5rem; }
-        .age-breakdown-table tr:not(:last-child) td { border-bottom: 1px solid #1e293b; }
-        .age-breakdown-label { text-align: left; color: #94a3b8; }
-        .age-breakdown-value { text-align: right; font-weight: 700; color: #f8fafc; cursor: pointer; transition: color 0.2s; }
-        .age-breakdown-value:hover { color: #60a5fa; }
-        
-        /* NEW: Integrated Card Alert */
+        /* Card Alert (Integrated) */
         .card-alert {
             background-color: rgba(251, 191, 36, 0.08);
             border: 1px solid rgba(251, 191, 36, 0.2);
             border-radius: 0.75rem;
-            padding: 1rem;
-            margin-top: 1.5rem;
+            padding: 0.75rem 1rem;
+            margin: 1rem 0;
             text-align: left;
         }
         .card-alert-title {
@@ -110,9 +91,10 @@
             align-items: center;
             gap: 0.5rem;
             margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
         .card-alert-message {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #e2e8f0;
             line-height: 1.5;
         }
@@ -125,14 +107,43 @@
             text-underline-offset: 3px;
             transition: color 0.2s;
         }
-        .clickable-count:hover {
-            color: #f59e0b;
-        }
+        .clickable-count:hover { color: #f59e0b; }
 
-        .hotspot-footer { position: relative; padding-top: 1.5rem; margin-top: 1.5rem; border-top: 1px solid #1e293b; }
+        .card-body-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            align-items: center;
+            margin: 1rem 0;
+        }
+        
+        .age-stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .age-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 0.9rem;
+            padding: 0.2rem 0;
+            border-bottom: 1px solid #1e293b;
+        }
+        .age-stat:last-child { border-bottom: none; }
+        .age-stat-label { color: #94a3b8; }
+        .age-stat-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #f8fafc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .age-stat-value:hover { color: #60a5fa; }
+
         .hotspot-pdt-bars { display: flex; flex-direction: column; gap: 0.5rem; }
-        .pdt-bar-row { display: flex; align-items: center; gap: 0.75rem; }
-        .pdt-bar-label { font-size: 0.8rem; color: #94a3b8; width: 80px; text-align: right; }
+        .pdt-bar-row { display: flex; align-items: center; gap: 0.5rem; }
+        .pdt-bar-label { font-size: 0.75rem; color: #94a3b8; width: 65px; text-align: right; }
         .pdt-bar-container { flex-grow: 1; height: 1.25rem; background-color: #020617; border-radius: 4px; overflow: hidden; display: flex; }
         .pdt-bar-segment { height: 100%; cursor: pointer; transition: filter 0.2s; }
         .pdt-bar-segment:hover { filter: brightness(1.2); }
@@ -140,61 +151,85 @@
         .bucket-color-1 { background-color: #34d399; }
         .bucket-color-2 { background-color: #facc15; }
         .bucket-color-3 { background-color: #f87171; }
-        .hotspot-actions { margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+        
+        .hotspot-footer { position: relative; padding-top: 1rem; margin-top: auto; border-top: 1px solid #1e293b; }
+        .hotspot-actions {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        .hotspot-actions > div { flex: 1; }
         .hotspot-action-btn {
             background-color: rgba(30, 41, 59, 0.8); border: 1px solid #334155;
-            color: #94a3b8; font-size: 0.875rem; font-weight: 600;
-            padding: 0.6rem 1.25rem; border-radius: 99px; transition: all 0.2s; white-space: nowrap;
+            color: #94a3b8; font-size: 0.8rem; font-weight: 600;
+            padding: 0.5rem 1rem; border-radius: 99px; transition: all 0.2s; white-space: nowrap;
+            width: 100%;
         }
         .hotspot-action-btn:hover:not(:disabled) { background-color: #3b82f6; color: white; border-color: #3b82f6; }
         .hotspot-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .logic-details { font-size: 0.75rem; color: #64748b; text-align: center; }
+        .logic-details { font-size: 0.7rem; color: #64748b; text-align: center; }
 
-        /* --- Modal & Table Styles --- */
+        /* Modal & Table Styles */
         .modal-content { animation: fadeInUp 0.3s ease-out forwards; }
         .data-table { width: 100%; border-collapse: collapse; }
         .data-table th, .data-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #334155; }
-        .ntc-suggestion-glow {
-            color: #facc15; font-weight: 600; margin-left: 0.5rem;
-            animation: glow-animation 1.5s infinite alternate; font-size: 0.8em;
-        }
-
-        /* --- Global Alerts --- */
+        
+        /* Global Alerts */
         .global-alert {
-            background-color: rgba(15, 23, 42, 0.6);
-            border-left: 5px solid;
-            padding: 1.25rem;
-            border-radius: 0.5rem;
-            display: flex;
-            gap: 1rem;
-            align-items: flex-start;
-            backdrop-filter: blur(5px);
+            background-color: rgba(15, 23, 42, 0.6); border-left: 5px solid; padding: 1.25rem;
+            border-radius: 0.5rem; display: flex; gap: 1rem; align-items: flex-start; backdrop-filter: blur(5px);
         }
         .global-alert .alert-icon { flex-shrink: 0; }
         .global-alert.alert-high { border-color: var(--glow-color-high); }
         .global-alert.alert-high .alert-icon { color: var(--glow-color-high); }
         .global-alert.alert-insight { border-color: #3b82f6; }
         .global-alert.alert-insight .alert-icon { color: #3b82f6; }
-        .global-alert .alert-title {
+        .global-alert .alert-title { font-weight: 700; font-size: 1.1rem; color: #f1f5f9; margin-bottom: 0.25rem; }
+        .global-alert .alert-message { color: #cbd5e1; line-height: 1.6; }
+        
+        /* Recommendation Note */
+        .recommendation-note {
+            padding: 1rem; margin-bottom: 2rem; border-radius: 0.75rem; border: 1px solid;
+            text-align: center; font-weight: 500; color: #fefce8; animation: flash-warning-bg 2s infinite;
+        }
+
+        /* NEW: Bold Mode Selector */
+        .mode-selector {
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid #1e293b;
+            border-radius: 0.75rem;
+            padding: 0.5rem;
+            display: flex;
+            width: -moz-fit-content;
+            width: fit-content;
+            margin: 0 auto;
+        }
+        .mode-btn {
+            border: 2px solid transparent;
+            background-color: transparent;
+            color: #94a3b8;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
             font-weight: 700;
             font-size: 1.1rem;
-            color: #f1f5f9;
-            margin-bottom: 0.25rem;
-        }
-        .global-alert .alert-message {
-            color: #cbd5e1;
-            line-height: 1.6;
-        }
-        
-        .recommendation-note {
-            padding: 1rem;
-            margin-bottom: 2rem;
-            border-radius: 0.75rem;
-            border: 1px solid;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
             text-align: center;
-            font-weight: 500;
-            color: #fefce8;
-            animation: flash-warning-bg 2s infinite;
+        }
+        .mode-btn .mode-subtitle {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: #64748b;
+        }
+        .mode-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        .mode-btn.active .mode-subtitle {
+            color: #dbeafe;
         }
     </style>
 </head>
@@ -222,9 +257,22 @@
         <div id="dashboard-view" class="hidden space-y-8 fade-in-up">
             <div id="global-alerts-container" class="mb-8 space-y-4"></div>
             <div id="recommendation-note-container"></div>
-            <div class="flex justify-end items-center">
+            
+            <!-- NEW: Bold Mode Selector -->
+            <div id="mode-selector" class="mode-selector">
+                <button id="mode-normal" class="mode-btn active">
+                    <div>Normal Mode</div>
+                    <div class="mode-subtitle">27h SLA (Buffer)</div>
+                </button>
+                <button id="mode-strict" class="mode-btn">
+                    <div>Strict Mode</div>
+                    <div class="mode-subtitle">24h SLA (No Buffer)</div>
+                </button>
+            </div>
+            
+            <div class="flex justify-end items-center gap-4">
                 <label class="flex items-center gap-2 cursor-pointer bg-slate-800/80 p-2 rounded-full text-sm">
-                    <span>Urgent Only (ETD < 5h)</span>
+                    <span>Urgent Only</span>
                     <div class="toggle-switch relative inline-block w-10 h-6">
                         <input type="checkbox" id="show-urgent-toggle" class="opacity-0 w-0 h-0" checked>
                         <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-700 rounded-full transition-colors duration-300 before:absolute before:content-[''] before:h-4 before:w-4 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-transform before:duration-300"></span>
@@ -269,11 +317,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailsModalContent = document.getElementById('detailsModalContent');
     const modalActions = document.getElementById('modal-actions');
     
+    // Toggle Setup
     const urgentToggleInput = document.getElementById('show-urgent-toggle');
-    if (urgentToggleInput) {
-        urgentToggleInput.addEventListener('change', () => {
-            const slider = urgentToggleInput.nextElementSibling;
-            if (urgentToggleInput.checked) {
+    const modeSelector = document.getElementById('mode-selector');
+
+    function setupToggle(toggleInput, callback) {
+        if (!toggleInput) return;
+        toggleInput.addEventListener('change', () => {
+            const slider = toggleInput.nextElementSibling;
+            if (toggleInput.checked) {
                 slider.classList.add('bg-blue-600');
                 slider.classList.remove('bg-slate-700');
                 slider.classList.add('before:translate-x-4');
@@ -282,14 +334,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 slider.classList.add('bg-slate-700');
                 slider.classList.remove('before:translate-x-4');
             }
+            if (callback) callback();
         });
-        urgentToggleInput.dispatchEvent(new Event('change'));
+        toggleInput.dispatchEvent(new Event('change'));
     }
+
+    setupToggle(urgentToggleInput, renderSummaryPanel);
+
+    modeSelector.addEventListener('click', (e) => {
+        const targetBtn = e.target.closest('.mode-btn');
+        if (!targetBtn || targetBtn.classList.contains('active')) return;
+
+        modeSelector.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        targetBtn.classList.add('active');
+        renderSummaryPanel();
+    });
+
 
     csvUpload.addEventListener('change', (e) => handleFileUpload(e.target.files));
     
     dashboardView.addEventListener('click', (e) => {
-        const ageValue = e.target.closest('.age-breakdown-value');
+        const ageValue = e.target.closest('.age-stat-value');
         if (ageValue) {
             const { ntc, bucket } = ageValue.dataset;
             const filtered = fullForecastData.filter(r => r.ntc === ntc && r.age_bucket === bucket);
@@ -439,7 +504,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (relevantShipments.length === 0) return { cutoff: null, nextETD: null };
         const nextETD = new Date(Math.min(...relevantShipments.map(r => new Date(r.etd.replace(' ', 'T')))));
         const timeUntilNextETD_hours = (nextETD - now) / (1000 * 60 * 60);
-        const cutoffForSLA = 21 - timeUntilNextETD_hours;
+        
+        const isNormalMode = document.getElementById('mode-normal').classList.contains('active');
+        const slaHours = isNormalMode ? 27 : 24;
+        const cutoffForSLA = slaHours - timeUntilNextETD_hours;
+
         return {
             cutoff: cutoffForSLA > 0 ? cutoffForSLA.toFixed(1) : null,
             nextETD: nextETD
@@ -447,6 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getSummaryData() {
+        if (!fullForecastData) return [];
         const summary = fullForecastData.reduce((acc, row) => {
             const { ntc, pdt, etd } = row;
             if (!acc[ntc]) {
@@ -488,8 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const toggle = document.getElementById('show-urgent-toggle');
-        const showUrgentOnly = toggle ? toggle.checked : false;
+        const showUrgentOnly = document.getElementById('show-urgent-toggle').checked;
         let summaryData = getSummaryData();
         
         renderGlobalAlerts(summaryData);
@@ -514,20 +583,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const count = data.b2c_heavy[bucket];
                 if (count === 0) return '';
                 const percentage = data.b2c_heavy.total > 0 ? (count / data.b2c_heavy.total) * 100 : 0;
-                return `<div class="pdt-bar-segment bucket-color-${i}" style="width: ${percentage}%" data-ntc="${ntc}" data-pdt="B2C,Heavy" data-bucket="${bucket}" title="${bucket}: ${count}"></div>`;
+                return `<div class="pdt-bar-segment bucket-color-${i}" style="width: ${percentage}%" title="${bucket}: ${count}"></div>`;
             }).join('');
             const b2bBar = ageBuckets.map((bucket, i) => {
                 const count = data.b2b[bucket];
                 if (count === 0) return '';
                 const percentage = data.b2b.total > 0 ? (count / data.b2b.total) * 100 : 0;
-                return `<div class="pdt-bar-segment bucket-color-${i}" style="width: ${percentage}%" data-ntc="${ntc}" data-pdt="B2B" data-bucket="${bucket}" title="${bucket}: ${count}"></div>`;
+                return `<div class="pdt-bar-segment bucket-color-${i}" style="width: ${percentage}%" title="${bucket}: ${count}"></div>`;
             }).join('');
             const etdString = data.soonestETD ? `ETD in ${getCountdownString(data.soonestETD)}` : 'No Upcoming ETD';
             
             const b2cCutoff = b2c_heavy_recommendation.cutoff;
             const b2bCutoff = b2b_recommendation.cutoff;
             
-            // Generate inline alert HTML
             let alertHTML = '';
             let b2cCount = 0;
             if (b2cCutoff) {
@@ -552,36 +620,42 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${b2bCount > 0 ? `<span class="clickable-count" data-ntc="${ntc}" data-pdt="B2B" data-cutoff="${b2bCutoff}">${b2bCount}</span> B2B` : ''}
                             shipments.
                         </p>
-                    </div>
-                `;
+                    </div>`;
             }
 
             return `
                 <div class="hotspot-card-v2 severity-${severityLevel}">
-                    <div class="hotspot-main-content">
+                    <div class="hotspot-header">
                         <div class="hotspot-ntc">${ntc}</div>
                         <div class="hotspot-total-count">${data.total} Shipments</div>
                         <div class="hotspot-etd-display">${etdString}</div>
-                        <table class="age-breakdown-table">
-                            <tbody>
-                                ${totalAgeData.map(age => `<tr><td class="age-breakdown-label">${age.label}</td><td class="age-breakdown-value" data-ntc="${ntc}" data-bucket="${age.label}">${age.count}</td></tr>`).join('')}
-                            </tbody>
-                        </table>
-                        ${alertHTML}
                     </div>
-                    <div class="hotspot-footer">
+                    
+                    ${alertHTML}
+
+                    <div class="card-body-grid">
                         <div class="hotspot-pdt-bars">
                             <div class="pdt-bar-row"><span class="pdt-bar-label">B2C/Heavy</span><div class="pdt-bar-container">${b2cHeavyBar}</div></div>
                             <div class="pdt-bar-row"><span class="pdt-bar-label">B2B</span><div class="pdt-bar-container">${b2bBar}</div></div>
                         </div>
+                        <div class="age-stats-container">
+                            ${totalAgeData.map(age => `
+                                <div class="age-stat">
+                                    <span class="age-stat-label">${age.label}</span>
+                                    <span class="age-stat-value" data-ntc="${ntc}" data-bucket="${age.label}">${age.count}</span>
+                                </div>`).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="hotspot-footer">
                         <div class="hotspot-actions">
-                            <div class="flex flex-col items-center">
-                                <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2C,Heavy" data-cutoff="${b2cCutoff}" ${!b2cCutoff ? 'disabled' : ''}>Full B2C/H Ageing List</button>
-                                ${b2cCutoff ? `<div class="logic-details">Cut-off: ${b2cCutoff}h | Next ETD: ${b2c_heavy_recommendation.nextETD.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>` : ''}
+                             <div>
+                                <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2C,Heavy" data-cutoff="${b2cCutoff}" ${!b2cCutoff ? 'disabled' : ''}>B2C/H Ageing List</button>
+                                ${b2cCutoff ? `<div class="logic-details">Cut-off: ${b2cCutoff}h</div>` : ''}
                             </div>
-                            <div class="flex flex-col items-center">
-                                <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2B" data-cutoff="${b2bCutoff}" ${!b2bCutoff ? 'disabled' : ''}>Full B2B Ageing List</button>
-                                ${b2bCutoff ? `<div class="logic-details">Cut-off: ${b2bCutoff}h | Next ETD: ${b2b_recommendation.nextETD.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>` : ''}
+                            <div>
+                                <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2B" data-cutoff="${b2bCutoff}" ${!b2bCutoff ? 'disabled' : ''}>B2B Ageing List</button>
+                                ${b2bCutoff ? `<div class="logic-details">Cut-off: ${b2bCutoff}h</div>` : ''}
                             </div>
                         </div>
                     </div>
@@ -639,9 +713,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderRecommendationNote() {
         const container = document.getElementById('recommendation-note-container');
         if (fullForecastData && fullForecastData.length > 0) {
+            const isNormalMode = document.getElementById('mode-normal').classList.contains('active');
+            const slaModeText = isNormalMode
+                ? "<b>27h (Normal Mode)</b>" 
+                : "<b>24h (Strict Mode)</b>";
             container.innerHTML = `
                 <div class="recommendation-note">
-                    <b>Note:</b> Recommended age cut-off is based on a <b>21-hour</b> processing window, providing a 3-hour buffer for vehicle loading before the actual ETD.
+                    <b>Note:</b> Recommendations prioritize shipments that will be >${slaModeText} old at ETD.
                 </div>
             `;
         } else {
@@ -655,6 +733,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const hours = Math.floor(diff / (3600000));
         const minutes = Math.floor((diff % 3600000) / 60000);
         return `${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m`;
+    }
+
+    function getBagIdLink(bagId) {
+        const cleanedId = (bagId || '').replace(/[^a-zA-Z0-9]/g, '');
+        if (!cleanedId) return '#'; // Return a non-functional link if ID is empty
+        
+        const isNumeric = /^\d+$/.test(cleanedId);
+
+        if (isNumeric) {
+            // It's a shipment
+            return `https://hq.delhivery.com/p/pntrzz/${cleanedId}/`;
+        } else {
+            // It's a bag
+            return `https://hq.delhivery.com/bag/${cleanedId}/`;
+        }
     }
 
     function renderTable(data, container, isSuggestion) {
@@ -673,7 +766,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <tbody>
             ${data.map(wbn => `
                 <tr>
-                    <td><a href="#" class="text-blue-400 hover:underline">${wbn.bag_id}</a></td>
+                    <td><a href="${getBagIdLink(wbn.bag_id)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${wbn.bag_id}</a></td>
                     <td class="${wbn.age_hours >= 48 ? 'text-red-400 font-bold' : ''}">${wbn.age_hours}</td>
                     ${hasPutawayLocation ? `<td>${wbn.putaway_location || 'N/A'}</td>` : ''}
                     <td>${wbn.pdt}</td>
