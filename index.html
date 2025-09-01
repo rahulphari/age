@@ -94,7 +94,42 @@
         .age-breakdown-value { text-align: right; font-weight: 700; color: #f8fafc; cursor: pointer; transition: color 0.2s; }
         .age-breakdown-value:hover { color: #60a5fa; }
         
-        .hotspot-footer { position: relative; padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #1e293b; }
+        /* NEW: Integrated Card Alert */
+        .card-alert {
+            background-color: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+        .card-alert-title {
+            font-weight: 700;
+            color: #facc15;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .card-alert-message {
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+        .clickable-count {
+            font-weight: 900;
+            color: #fde047;
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-underline-offset: 3px;
+            transition: color 0.2s;
+        }
+        .clickable-count:hover {
+            color: #f59e0b;
+        }
+
+        .hotspot-footer { position: relative; padding-top: 1.5rem; margin-top: 1.5rem; border-top: 1px solid #1e293b; }
         .hotspot-pdt-bars { display: flex; flex-direction: column; gap: 0.5rem; }
         .pdt-bar-row { display: flex; align-items: center; gap: 0.75rem; }
         .pdt-bar-label { font-size: 0.8rem; color: #94a3b8; width: 80px; text-align: right; }
@@ -105,7 +140,7 @@
         .bucket-color-1 { background-color: #34d399; }
         .bucket-color-2 { background-color: #facc15; }
         .bucket-color-3 { background-color: #f87171; }
-        .hotspot-actions { margin-top: 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+        .hotspot-actions { margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
         .hotspot-action-btn {
             background-color: rgba(30, 41, 59, 0.8); border: 1px solid #334155;
             color: #94a3b8; font-size: 0.875rem; font-weight: 600;
@@ -124,54 +159,32 @@
             animation: glow-animation 1.5s infinite alternate; font-size: 0.8em;
         }
 
-        /* --- System Status HUD --- */
-        .status-hud {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            padding: 1.5rem;
-            margin-bottom: 3rem;
+        /* --- Global Alerts --- */
+        .global-alert {
+            background-color: rgba(15, 23, 42, 0.6);
+            border-left: 5px solid;
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            backdrop-filter: blur(5px);
         }
-        .status-item {
-            background-color: rgba(15, 23, 42, 0.5);
-            border: 1px solid #1e293b;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            text-align: center;
+        .global-alert .alert-icon { flex-shrink: 0; }
+        .global-alert.alert-high { border-color: var(--glow-color-high); }
+        .global-alert.alert-high .alert-icon { color: var(--glow-color-high); }
+        .global-alert.alert-insight { border-color: #3b82f6; }
+        .global-alert.alert-insight .alert-icon { color: #3b82f6; }
+        .global-alert .alert-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #f1f5f9;
+            margin-bottom: 0.25rem;
         }
-        .status-label {
-            font-size: 1rem;
-            color: #94a3b8;
-            margin-bottom: 0.5rem;
+        .global-alert .alert-message {
+            color: #cbd5e1;
+            line-height: 1.6;
         }
-        .status-value {
-            font-size: 3rem;
-            font-weight: 800;
-            color: #f8fafc;
-            line-height: 1;
-        }
-        .status-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            text-align: left;
-        }
-        .status-list li {
-            font-size: 1.25rem;
-            font-weight: 600;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #1e293b;
-        }
-        .status-list li:last-child {
-            border-bottom: none;
-        }
-        .status-list-rank {
-            display: inline-block;
-            width: 2rem;
-            font-weight: 800;
-            color: #64748b;
-        }
-        .status-value.critical { color: var(--glow-color-critical); }
         
         .recommendation-note {
             padding: 1rem;
@@ -207,7 +220,7 @@
 
         <!-- Dashboard View -->
         <div id="dashboard-view" class="hidden space-y-8 fade-in-up">
-            <div id="status-hud-container"></div>
+            <div id="global-alerts-container" class="mb-8 space-y-4"></div>
             <div id="recommendation-note-container"></div>
             <div class="flex justify-end items-center">
                 <label class="flex items-center gap-2 cursor-pointer bg-slate-800/80 p-2 rounded-full text-sm">
@@ -287,18 +300,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cutoffBtn) {
             const { ntc, pdt, cutoff } = cutoffBtn.dataset;
             if (!cutoff || cutoff === 'null') return; 
+            triggerRecommendationModal(ntc, pdt, cutoff);
+        }
 
-            const pdtsToFilter = pdt.split(',');
-            const filteredData = fullForecastData.filter(r => 
-                r.ntc === ntc &&
-                pdtsToFilter.includes(r.pdt) &&
-                r.age_hours >= parseFloat(cutoff)
-            );
-
-            const modalTitle = `Recommended Ageing List for ${ntc} (${pdt})`;
-            openDetailsModal(modalTitle, filteredData, true);
+        const clickableCount = e.target.closest('.clickable-count');
+        if (clickableCount) {
+            const { ntc, pdt, cutoff } = clickableCount.dataset;
+            if (!cutoff || cutoff === 'null') return;
+            triggerRecommendationModal(ntc, pdt, cutoff);
         }
     });
+
+    function triggerRecommendationModal(ntc, pdt, cutoff) {
+        const pdtsToFilter = pdt.split(',');
+        const filteredData = fullForecastData.filter(r => 
+            r.ntc === ntc &&
+            pdtsToFilter.includes(r.pdt) &&
+            r.age_hours >= parseFloat(cutoff)
+        );
+        const modalTitle = `Recommended Ageing List for ${ntc} (${pdt})`;
+        openDetailsModal(modalTitle, filteredData, true);
+    }
 
     dashboardView.addEventListener('change', (e) => {
         if (e.target.id === 'show-urgent-toggle') {
@@ -417,9 +439,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (relevantShipments.length === 0) return { cutoff: null, nextETD: null };
         const nextETD = new Date(Math.min(...relevantShipments.map(r => new Date(r.etd.replace(' ', 'T')))));
         const timeUntilNextETD_hours = (nextETD - now) / (1000 * 60 * 60);
-        const cutoffFor24hSLA = 24 - timeUntilNextETD_hours;
+        const cutoffForSLA = 21 - timeUntilNextETD_hours;
         return {
-            cutoff: cutoffFor24hSLA > 0 ? cutoffFor24hSLA.toFixed(1) : null,
+            cutoff: cutoffForSLA > 0 ? cutoffForSLA.toFixed(1) : null,
             nextETD: nextETD
         };
     }
@@ -458,9 +480,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderSummaryPanel() {
+        const summaryPanel = document.getElementById('summary-panel');
         if (!fullForecastData || fullForecastData.length === 0) {
             summaryPanel.innerHTML = `<div class="col-span-full text-center bg-slate-800/50 p-8 rounded-lg border border-slate-700"><h3 class="font-bold text-2xl text-yellow-400 mb-2">No Actionable Data Found</h3><p class="text-slate-400">The uploaded file does not contain any shipments that are currently <b class="text-white">"in_center"</b> and have an <b class="text-white">"is_lock"</b> status of <b class="text-white">"FALSE"</b>.</p><p class="text-slate-500 mt-2">Please upload a file with current operational data to activate the dashboard.</p></div>`;
-            document.getElementById('status-hud-container').innerHTML = '';
+            document.getElementById('global-alerts-container').innerHTML = '';
             document.getElementById('recommendation-note-container').innerHTML = '';
             return;
         }
@@ -469,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const showUrgentOnly = toggle ? toggle.checked : false;
         let summaryData = getSummaryData();
         
-        renderHUD(summaryData);
+        renderGlobalAlerts(summaryData);
         renderRecommendationNote();
 
         if (showUrgentOnly) {
@@ -503,6 +526,35 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const b2cCutoff = b2c_heavy_recommendation.cutoff;
             const b2bCutoff = b2b_recommendation.cutoff;
+            
+            // Generate inline alert HTML
+            let alertHTML = '';
+            let b2cCount = 0;
+            if (b2cCutoff) {
+                b2cCount = fullForecastData.filter(r => r.ntc === ntc && r.pdt !== 'B2B' && r.age_hours >= parseFloat(b2cCutoff)).length;
+            }
+            let b2bCount = 0;
+            if (b2bCutoff) {
+                b2bCount = fullForecastData.filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff)).length;
+            }
+
+            if (b2cCount > 0 || b2bCount > 0) {
+                 alertHTML = `
+                    <div class="card-alert">
+                        <div class="card-alert-title">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a6 6 0 00-6 6v3.586l-1.707 1.707A1 1 0 003 15h14a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM8 16a2 2 0 114 0H8z" clip-rule="evenodd" /></svg>
+                           <span>Action Required</span>
+                        </div>
+                        <p class="card-alert-message">
+                            Prioritize picking 
+                            ${b2cCount > 0 ? `<span class="clickable-count" data-ntc="${ntc}" data-pdt="B2C,Heavy" data-cutoff="${b2cCutoff}">${b2cCount}</span> B2C/Heavy` : ''}
+                            ${b2cCount > 0 && b2bCount > 0 ? ' & ' : ''}
+                            ${b2bCount > 0 ? `<span class="clickable-count" data-ntc="${ntc}" data-pdt="B2B" data-cutoff="${b2bCutoff}">${b2bCount}</span> B2B` : ''}
+                            shipments.
+                        </p>
+                    </div>
+                `;
+            }
 
             return `
                 <div class="hotspot-card-v2 severity-${severityLevel}">
@@ -515,6 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${totalAgeData.map(age => `<tr><td class="age-breakdown-label">${age.label}</td><td class="age-breakdown-value" data-ntc="${ntc}" data-bucket="${age.label}">${age.count}</td></tr>`).join('')}
                             </tbody>
                         </table>
+                        ${alertHTML}
                     </div>
                     <div class="hotspot-footer">
                         <div class="hotspot-pdt-bars">
@@ -523,11 +576,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div class="hotspot-actions">
                             <div class="flex flex-col items-center">
-                                <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2C,Heavy" data-cutoff="${b2cCutoff}" ${!b2cCutoff ? 'disabled' : ''}>Recommended B2C/H Ageing List</button>
+                                <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2C,Heavy" data-cutoff="${b2cCutoff}" ${!b2cCutoff ? 'disabled' : ''}>Full B2C/H Ageing List</button>
                                 ${b2cCutoff ? `<div class="logic-details">Cut-off: ${b2cCutoff}h | Next ETD: ${b2c_heavy_recommendation.nextETD.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>` : ''}
                             </div>
                             <div class="flex flex-col items-center">
-                                <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2B" data-cutoff="${b2bCutoff}" ${!b2bCutoff ? 'disabled' : ''}>Recommended B2B Ageing List</button>
+                                <button class="hotspot-action-btn" data-ntc="${ntc}" data-pdt="B2B" data-cutoff="${b2bCutoff}" ${!b2bCutoff ? 'disabled' : ''}>Full B2B Ageing List</button>
                                 ${b2bCutoff ? `<div class="logic-details">Cut-off: ${b2bCutoff}h | Next ETD: ${b2b_recommendation.nextETD.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>` : ''}
                             </div>
                         </div>
@@ -536,44 +589,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
     
-    function renderHUD(summaryData) {
-        const container = document.getElementById('status-hud-container');
+    function renderGlobalAlerts(summaryData) {
+        const container = document.getElementById('global-alerts-container');
+        let alertsHTML = '';
+
+        // Strategic Overview
+        const agedShipments = fullForecastData.filter(r => r.age_hours >= 24).length;
         const totalShipments = fullForecastData.length;
-        const topCritical = summaryData.sort((a,b) => b.severityScore - a.severityScore).slice(0, 3);
-        const fileDate = fileTimestamp ? fileTimestamp.toLocaleString() : 'N/A';
+        const agedPercentage = totalShipments > 0 ? ((agedShipments / totalShipments) * 100).toFixed(0) : 0;
         
-        let fileAgeWarning = '';
+        alertsHTML += `
+            <div class="global-alert alert-insight">
+                <div class="alert-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 12a1 1 0 112 0 1 1 0 01-2 0zM9 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" /></svg>
+                </div>
+                <div>
+                    <div class="alert-title">STRATEGIC OVERVIEW</div>
+                    <p class="alert-message">
+                        <b>${totalShipments}</b> total actionable shipments. <b>${agedPercentage}%</b> are currently aged over 24 hours. Monitor medium-priority NTCs to prevent future bottlenecks.
+                    </p>
+                </div>
+            </div>
+        `;
+        
+        // File Age Warning
         if (fileTimestamp) {
-            const fileAgeHours = (new Date() - fileTimestamp) / 3600000; // ms to hours
+            const fileAgeHours = (new Date() - fileTimestamp) / 3600000;
             if (fileAgeHours > 1) {
-                fileAgeWarning = `<div class="status-label mt-1 text-yellow-400 font-bold">Warning: File is ${fileAgeHours.toFixed(1)} hours old</div>`;
+                alertsHTML += `
+                <div class="global-alert alert-high">
+                    <div class="alert-icon">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    </div>
+                    <div>
+                        <div class="alert-title">DATA INTEGRITY WARNING</div>
+                        <p class="alert-message">
+                            Current view is based on data that is <b>${fileAgeHours.toFixed(1)} hours old</b>. A new file upload is recommended for real-time accuracy.
+                        </p>
+                    </div>
+                </div>
+                `;
             }
         }
 
-        container.innerHTML = `
-            <div class="status-hud">
-                <div class="status-item">
-                    <div class="status-label">Total Actionable Shipments</div>
-                    <div class="status-value">${totalShipments}</div>
-                    <div class="status-label mt-2">File Time: ${fileDate}</div>
-                    ${fileAgeWarning}
-                </div>
-                <div class="status-item">
-                    <div class="status-label">Top Critical NTC's</div>
-                    <ul class="status-list">
-                        ${topCritical.length > 0 ? topCritical.map((item, index) => `<li><span class="status-list-rank">#${index + 1}</span> ${item.ntc}</li>`).join('') : '<li>No critical hotspots</li>'}
-                    </ul>
-                </div>
-            </div>
-        `;
+        container.innerHTML = alertsHTML;
     }
 
+
     function renderRecommendationNote() {
-        document.getElementById('recommendation-note-container').innerHTML = `
-            <div class="recommendation-note">
-                <b>Note:</b> Recommended age cut-off is based on the next available ETD and assumes only one connection exists in 24 hours.
-            </div>
-        `;
+        const container = document.getElementById('recommendation-note-container');
+        if (fullForecastData && fullForecastData.length > 0) {
+            container.innerHTML = `
+                <div class="recommendation-note">
+                    <b>Note:</b> Recommended age cut-off is based on a <b>21-hour</b> processing window, providing a 3-hour buffer for vehicle loading before the actual ETD.
+                </div>
+            `;
+        } else {
+            container.innerHTML = '';
+        }
     }
 
     function getCountdownString(etdDate) {
@@ -695,3 +768,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
