@@ -195,7 +195,7 @@
             text-align: center; font-weight: 500; color: #fefce8; animation: flash-warning-bg 2s infinite;
         }
 
-        /* NEW: Bold Mode Selector */
+        /* Bold Mode Selector */
         .mode-selector {
             background-color: rgba(15, 23, 42, 0.5);
             border: 1px solid #1e293b;
@@ -231,6 +231,12 @@
         .mode-btn.active .mode-subtitle {
             color: #dbeafe;
         }
+
+        /* Bulk Search Dropdown */
+        .primary-btn {
+            background: linear-gradient(45deg, #3b82f6, #2563eb); color: white; font-weight: 600;
+            padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
     </style>
 </head>
 <body class="text-slate-200">
@@ -258,7 +264,6 @@
             <div id="global-alerts-container" class="mb-8 space-y-4"></div>
             <div id="recommendation-note-container"></div>
             
-            <!-- NEW: Bold Mode Selector -->
             <div id="mode-selector" class="mode-selector">
                 <button id="mode-normal" class="mode-btn active">
                     <div>Normal Mode</div>
@@ -397,12 +402,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const target = e.target.closest('button');
         if (!target) return;
         if (target.id === 'closeDetailsModal') closeAllModals();
-        if (target.id === 'copyForChatBtn') copyModalChatData(target);
         if (target.id === 'recommendPickSpacesBtn') showPickSpaces();
         if (target.id === 'backToDetailsBtn') renderTable(modalCurrentData, null, true);
         if (target.id === 'copyLocationsBtn') copyPickLocations(target);
+
+        const bulkSearchBtn = e.target.closest('#bulkSearchBtn');
+        if (bulkSearchBtn) {
+            document.getElementById('bulk-search-dropdown').classList.toggle('hidden');
+        } else if (!e.target.closest('#bulk-search-menu')) {
+            const dropdown = document.getElementById('bulk-search-dropdown');
+            if(dropdown) dropdown.classList.add('hidden');
+        }
     });
-    detailsModal.addEventListener('click', (e) => { if (e.target === detailsModal) closeAllModals(); });
+
+    detailsModal.addEventListener('click', (e) => { 
+        if (e.target === detailsModal) closeAllModals(); 
+        if (!e.target.closest('#bulk-search-menu')) {
+             const dropdown = document.getElementById('bulk-search-dropdown');
+            if(dropdown) dropdown.classList.add('hidden');
+        }
+    });
 
     function handleFileUpload(files) {
         const file = files[0];
@@ -784,9 +803,51 @@ document.addEventListener('DOMContentLoaded', () => {
         modalCurrentData = data;
         detailsModalTitle.textContent = title;
         renderTable(data, detailsModalContent, isSuggestion);
+        updateBulkSearchLinks(data);
         detailsModal.classList.remove('hidden');
         detailsModal.classList.add('flex');
     }
+
+    function updateBulkSearchLinks(data) {
+        const bags = [];
+        const shipments = [];
+
+        data.forEach(item => {
+            const cleanedId = (item.bag_id || '').replace(/[^a-zA-Z0-9]/g, '');
+            if (!cleanedId) return;
+            
+            const isNumeric = /^\d+$/.test(cleanedId);
+            if (isNumeric) {
+                shipments.push(cleanedId);
+            } else {
+                bags.push(cleanedId);
+            }
+        });
+
+        const bagsLink = document.getElementById('bulkSearchBagsLink');
+        const shipmentsLink = document.getElementById('bulkSearchShipmentsLink');
+
+        if (bags.length > 0) {
+            bagsLink.href = `https://hq.delhivery.com/bag/list/1?bs=${bags.join('+')}`;
+            bagsLink.classList.remove('opacity-50', 'cursor-not-allowed');
+            bagsLink.textContent = `Bulk Search Bags (${bags.length})`;
+        } else {
+            bagsLink.href = '#';
+            bagsLink.classList.add('opacity-50', 'cursor-not-allowed');
+            bagsLink.textContent = 'Bulk Search Bags (0)';
+        }
+
+        if (shipments.length > 0) {
+            shipmentsLink.href = `https://hq.delhivery.com/p/list/1?type=waybill&q=${shipments.join('%20')}`;
+            shipmentsLink.classList.remove('opacity-50', 'cursor-not-allowed');
+            shipmentsLink.textContent = `Bulk Search Shipments (${shipments.length})`;
+        } else {
+            shipmentsLink.href = '#';
+            shipmentsLink.classList.add('opacity-50', 'cursor-not-allowed');
+            shipmentsLink.textContent = 'Bulk Search Shipments (0)';
+        }
+    }
+
 
     function showPickSpaces() {
         const locations = [...new Set(modalCurrentData.map(item => item.putaway_location).filter(Boolean))];
@@ -801,7 +862,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupModalActions(view, isSuggestion = false) {
         let buttonsHTML = '';
         if (view === 'table') {
-            buttonsHTML += `<button id="copyForChatBtn" class="secondary-btn">Copy for Chat</button>`;
+            buttonsHTML += `
+            <div class="relative" id="bulk-search-menu">
+                <button id="bulkSearchBtn" class="primary-btn flex items-center gap-2">
+                    <span>Bulk Search in HQ</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="bulk-search-dropdown" class="hidden absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 z-10">
+                    <div class="py-1">
+                        <a href="#" id="bulkSearchBagsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
+                        <a href="#" id="bulkSearchShipmentsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
+                    </div>
+                </div>
+            </div>`;
+
             if (isSuggestion && hasPutawayLocation) {
                 buttonsHTML += `<button id="recommendPickSpacesBtn" class="primary-btn" style="background: linear-gradient(45deg, #f59e0b, #facc15);">Recommend Pick Spaces</button>`;
             }
@@ -824,22 +898,6 @@ document.addEventListener('DOMContentLoaded', () => {
             button.textContent = 'Copied!';
             setTimeout(() => { button.textContent = originalText; }, 2000);
         }).catch(err => console.error('Failed to copy: ', err));
-    }
-
-    function copyModalChatData(button) {
-        const table = detailsModalContent.querySelector('table');
-        if (!table) return;
-        const rows = [...table.querySelectorAll('tbody tr')];
-        const ntcIndex = hasPutawayLocation ? 5 : 4;
-        const bagIdIndex = 0;
-        const groupedByNtc = rows.reduce((acc, row) => {
-            const ntc = row.cells[ntcIndex].textContent.trim().split('*')[0];
-            const bagId = row.cells[bagIdIndex].textContent.trim();
-            (acc[ntc] = acc[ntc] || []).push(bagId);
-            return acc;
-        }, {});
-        let chatString = Object.entries(groupedByNtc).map(([ntc, bags]) => `${ntc}\n${bags.join('\n')}`).join('\n\n');
-        copyToClipboard(chatString.trim(), button);
     }
     
     function copyPickLocations(button) {
