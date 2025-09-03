@@ -1135,7 +1135,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const fiveHoursFromNow = new Date().getTime() + (5 * 60 * 60 * 1000);
             summaryData = summaryData.filter(item => item.data.soonestETD && item.data.soonestETD.getTime() < fiveHoursFromNow);
         }
-        summaryData.sort((a, b) => b.severityScore - a.severityScore);
+        
+        // FIX: Primary sort by ETD, secondary by severity
+        summaryData.sort((a, b) => {
+            const aETD = a.data.soonestETD;
+            const bETD = b.data.soonestETD;
+            if (aETD === null && bETD === null) return b.severityScore - a.severityScore;
+            if (aETD === null) return 1;
+            if (bETD === null) return -1;
+            if (aETD.getTime() !== bETD.getTime()) {
+                return aETD - bETD;
+            }
+            return b.severityScore - a.severityScore;
+        });
+        
         if (summaryData.length === 0) {
             summaryPanel.innerHTML = `<p class="text-slate-400 text-center col-span-full">No NTCs match the current "Urgent Only" view.</p>`;
             return;
