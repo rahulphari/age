@@ -13,8 +13,7 @@
         :root {
             --glow-color-critical: rgba(239, 68, 68, 0.7);
             --glow-color-high: rgba(245, 158, 11, 0.7);
-            --glow-color-medium: rgba(250, 204, 21, 0.7);
-            --glow-color-low: rgba(52, 211, 153, 0.7);
+            --glow-color-medium: rgba(52, 211, 153, 0.5); /* Adjusted for subtler hover */
         }
 
         @keyframes grid-pan {
@@ -26,12 +25,12 @@
             font-family: 'Inter', sans-serif;
             background-color: #020617; /* slate-950 */
             background-image: 
-                radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(34, 197, 94, 0.1) 0%, transparent 50%),
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 50px 50px, 50px 50px;
-            animation: grid-pan 60s linear infinite;
+                radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 75% 75%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            animation: grid-pan 80s linear infinite;
         }
 
         /* --- Animations & Transitions --- */
@@ -40,18 +39,14 @@
             to { opacity: 1; transform: translateY(0); }
         }
         @keyframes pulse-glow-critical {
-            0%, 100% { box-shadow: 0 0 12px 2px var(--glow-color-critical), inset 0 0 15px var(--glow-color-critical); }
-            50% { box-shadow: 0 0 24px 8px var(--glow-color-critical), inset 0 0 15px var(--glow-color-critical); }
+            0%, 100% { box-shadow: 0 0 10px 0px var(--glow-color-critical), inset 0 0 10px var(--glow-color-critical); }
+            50% { box-shadow: 0 0 20px 5px var(--glow-color-critical), inset 0 0 10px var(--glow-color-critical); }
         }
         @keyframes pulse-glow-high {
-            0%, 100% { box-shadow: 0 0 10px 2px var(--glow-color-high), inset 0 0 15px var(--glow-color-high); }
-            50% { box-shadow: 0 0 20px 6px var(--glow-color-high), inset 0 0 15px var(--glow-color-high); }
+            0%, 100% { box-shadow: 0 0 8px 0px var(--glow-color-high), inset 0 0 8px var(--glow-color-high); }
+            50% { box-shadow: 0 0 16px 4px var(--glow-color-high), inset 0 0 8px var(--glow-color-high); }
         }
-        @keyframes flash-warning-bg {
-            0%, 100% { background-color: rgba(250, 204, 21, 0.1); border-color: rgba(250, 204, 21, 0.3); }
-            50% { background-color: rgba(250, 204, 21, 0.2); border-color: rgba(250, 204, 21, 0.5); }
-        }
-        .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .fade-in-up { animation: fadeInUp 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
 
         /* --- General UI --- */
         .main-container { max-width: 95vw; margin: 0 auto; padding: 1.5rem; }
@@ -71,12 +66,16 @@
             position: relative; border-radius: 1rem; padding: 1.25rem;
             display: flex; flex-direction: column; justify-content: space-between;
             overflow: hidden; border: 1px solid #334155;
-            background: radial-gradient(circle at center, rgba(30, 41, 59, 0.5) 0%, transparent 70%);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: rgba(30, 41, 59, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
         }
-        .hotspot-card-v2:hover { transform: translateY(-5px); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
-        .hotspot-card-v2.severity-critical { animation: pulse-glow-critical 2.5s infinite; border-color: var(--glow-color-critical); }
-        .hotspot-card-v2.severity-high { animation: pulse-glow-high 3s infinite; border-color: var(--glow-color-high); }
+        .hotspot-card-v2:hover { 
+            transform: translateY(-5px) scale(1.02); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-color: var(--glow-color-medium);
+        }
+        .hotspot-card-v2.severity-critical { animation: pulse-glow-critical 3s infinite ease-in-out; border-color: var(--glow-color-critical); }
+        .hotspot-card-v2.severity-high { animation: pulse-glow-high 3.5s infinite ease-in-out; border-color: var(--glow-color-high); }
         
         .hotspot-header { text-align: center; }
         .hotspot-ntc { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 900; color: #f8fafc; line-height: 1.1; word-break: break-word; }
@@ -130,10 +129,13 @@
         .hotspot-action-btn {
             background-color: rgba(30, 41, 59, 0.8); border: 1px solid #334155;
             color: #94a3b8; font-size: 0.8rem; font-weight: 600;
-            padding: 0.5rem 1rem; border-radius: 99px; transition: all 0.2s; white-space: nowrap;
+            padding: 0.5rem 1rem; border-radius: 99px; transition: all 0.3s; white-space: nowrap;
             width: 100%;
         }
-        .hotspot-action-btn:hover:not(:disabled) { background-color: #3b82f6; color: white; border-color: #3b82f6; }
+        .hotspot-action-btn:hover:not(:disabled) { 
+            background-color: #3b82f6; color: white; border-color: #3b82f6;
+            transform: scale(1.05);
+        }
         .hotspot-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .logic-details { font-size: 0.7rem; color: #64748b; text-align: center; }
 
@@ -141,6 +143,16 @@
         .modal-content { animation: fadeInUp 0.3s ease-out forwards; }
         .data-table { width: 100%; border-collapse: collapse; }
         .data-table th, .data-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #334155; }
+        .report-textarea {
+            width: 100%;
+            height: 60vh;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: monospace;
+        }
         
         /* --- Global & Mode-Specific Alerts --- */
         .global-alert, .mode-alert {
@@ -154,11 +166,6 @@
         .global-alert.alert-insight .alert-icon, .mode-alert.alert-insight .alert-icon { color: #3b82f6; }
         .global-alert .alert-title, .mode-alert .alert-title { font-weight: 700; font-size: 1.1rem; color: #f1f5f9; margin-bottom: 0.25rem; }
         .global-alert .alert-message, .mode-alert .alert-message { color: #cbd5e1; line-height: 1.6; }
-        
-        .recommendation-note {
-            padding: 1rem; margin-bottom: 2rem; border-radius: 0.75rem; border: 1px solid;
-            text-align: center; font-weight: 500; color: #fefce8; animation: flash-warning-bg 2s infinite;
-        }
 
         .mode-selector {
             background-color: rgba(15, 23, 42, 0.5); border: 1px solid #1e293b;
@@ -178,6 +185,9 @@
 
         /* --- Review Mode Specific Styles --- */
         #review-mode-view .data-table th { background-color: #1e293b; }
+        #review-mode-view .data-table tbody tr { transition: background-color 0.2s ease; }
+        #review-mode-view .data-table tbody tr:hover { background-color: rgba(30, 41, 59, 0.7); }
+
         .status-btn-group button {
             padding: 4px 10px; font-size: 12px; border: 1px solid #475569;
             transition: all 0.2s;
@@ -197,6 +207,31 @@
             background-color: #334155; color: #cbd5e1; font-size: 10px;
             padding: 2px 8px; border-radius: 99px; cursor: pointer;
         }
+        
+        /* NEW: Report Filter Styles */
+        .report-filter-group {
+            display: flex;
+            background-color: #0f172a;
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+            margin-bottom: 1rem;
+        }
+        .report-filter-btn {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            background-color: transparent;
+            color: #94a3b8;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .report-filter-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+        }
+
     </style>
 </head>
 <body class="text-slate-200">
@@ -222,18 +257,20 @@
         <!-- Live Mode View -->
         <div id="live-mode-view" class="hidden space-y-8 fade-in-up">
             <div id="global-alerts-container" class="mb-8 space-y-4"></div>
-            <div id="recommendation-note-container"></div>
-            <div id="mode-selector" class="mode-selector">
-                <button id="mode-normal" class="mode-btn active">
-                    <div>Normal Mode</div>
-                    <div class="mode-subtitle">27h SLA (Buffer)</div>
-                </button>
-                <button id="mode-strict" class="mode-btn">
-                    <div>Strict Mode</div>
-                    <div class="mode-subtitle">24h SLA (No Buffer)</div>
-                </button>
+            <div class="flex justify-center items-center gap-4">
+                <div id="mode-selector" class="mode-selector">
+                    <button id="mode-normal" class="mode-btn active">
+                        <div>Normal Mode</div>
+                        <div class="mode-subtitle">27h SLA (Buffer)</div>
+                    </button>
+                    <button id="mode-strict" class="mode-btn">
+                        <div>Strict Mode</div>
+                        <div class="mode-subtitle">24h SLA (No Buffer)</div>
+                    </button>
+                </div>
             </div>
-            <div class="flex justify-end items-center gap-4">
+            <div class="flex justify-between items-center gap-4">
+                <button id="generate-live-report-btn" class="primary-btn" disabled>Generate Ageing Report</button>
                 <label class="flex items-center gap-2 cursor-pointer bg-slate-800/80 p-2 rounded-full text-sm">
                     <span>Urgent Only</span>
                     <div class="toggle-switch relative inline-block w-10 h-6">
@@ -250,13 +287,13 @@
             <div id="review-mode-alert"></div>
             <div id="review-table-container"></div>
             <div id="generate-report-container" class="text-center mt-8">
-                 <button id="generate-report-btn" class="primary-btn" disabled>Generate Report</button>
+                 <button id="generate-report-btn" class="primary-btn" disabled>Generate PDF Report</button>
             </div>
         </div>
     </div>
 
     <footer class="text-center text-slate-500 mt-12 border-t border-slate-800 pt-6">
-        Designed & Crafted by Rh. | for ⚡ Team Sonic - Hubli (for internal use only)
+        AGE-SIGHT v2.0 | Designed by Rh. for ⚡ Team Sonic - Hubli
     </footer>
 </div>
 
@@ -297,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const urgentToggleInput = document.getElementById('show-urgent-toggle');
     const modeSelector = document.getElementById('mode-selector');
     const generateReportBtn = document.getElementById('generate-report-btn');
+    const generateLiveReportBtn = document.getElementById('generate-live-report-btn');
 
     // --- INITIAL SETUP & EVENT LISTENERS ---
 
@@ -353,6 +391,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!cutoff || cutoff === 'null') return;
             const filteredData = fullForecastData.filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
             openDetailsModal(`Recommended Ageing List for ${ntc} (${pdt})`, filteredData, true);
+        }
+        
+        if (e.target.id === 'generate-live-report-btn' && !e.target.disabled) {
+            generateLiveReport();
         }
     });
 
@@ -619,8 +661,12 @@ document.addEventListener('DOMContentLoaded', () => {
         modalCurrentData = data;
         detailsModalTitle.textContent = title;
         if (currentMode === 'live') {
-            renderTable(data, detailsModalContent, isSuggestion);
-            updateBulkSearchLinks(data);
+            if (title === 'Live Ageing Report') {
+                renderLiveReportModal(data);
+            } else {
+                renderTable(data, detailsModalContent, isSuggestion);
+                updateBulkSearchLinks(data);
+            }
         } else { // Review Mode
             renderReviewTable(data);
             updateBulkSearchLinks(data);
@@ -632,6 +678,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleModalActions(actionId) {
         switch(actionId) {
             case 'closeDetailsModal': closeAllModals(); break;
+            case 'copyReportBtn': 
+                const reportText = document.getElementById('report-textarea').value;
+                const btn = document.getElementById('copyReportBtn');
+                navigator.clipboard.writeText(reportText).then(() => {
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => { btn.textContent = originalText; }, 2000);
+                }).catch(err => console.error('Failed to copy report:', err));
+                break;
             case 'recommendPickSpacesBtn': showPickSpaces(); break;
             case 'backToDetailsBtn': renderTable(modalCurrentData, null, true); break;
             case 'copyLocationsBtn': copyPickLocations(target); break;
@@ -689,6 +744,107 @@ document.addEventListener('DOMContentLoaded', () => {
         detailsModalContent.innerHTML = '';
         detailsModalContent.appendChild(table);
     }
+    
+    // --- REPORTING FUNCTIONS ---
+    function generateLiveReport() {
+        const summaryData = getSummaryData();
+        summaryData.sort((a, b) => {
+            if (a.data.soonestETD === null && b.data.soonestETD === null) return 0;
+            if (a.data.soonestETD === null) return 1;
+            if (b.data.soonestETD === null) return -1;
+            return a.data.soonestETD - b.data.soonestETD;
+        });
+
+        const reportData = summaryData.map(ntcItem => {
+            const { ntc, b2c_heavy_recommendation, b2b_recommendation } = ntcItem;
+            
+            const b2cCutoff = b2c_heavy_recommendation.cutoff;
+            const b2bCutoff = b2b_recommendation.cutoff;
+            
+            let b2cList = [];
+            if (b2cCutoff) {
+                b2cList = fullForecastData
+                    .filter(r => r.ntc === ntc && r.pdt !== 'B2B' && r.age_hours >= parseFloat(b2cCutoff))
+                    .map(item => item.bag_id);
+            }
+
+            let b2bList = [];
+            if (b2bCutoff) {
+                b2bList = fullForecastData
+                    .filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff))
+                    .map(item => item.bag_id);
+            }
+            
+            if (b2cList.length > 0 || b2bList.length > 0) {
+                 return { ntc, b2cList, b2bList };
+            }
+            return null;
+        }).filter(Boolean);
+        
+        openDetailsModal("Live Ageing Report", reportData, false);
+    }
+    
+    function formatReportText(reportData, filter) {
+        const reportParts = [];
+        reportData.forEach(ntcItem => {
+            const { ntc, b2cList, b2bList } = ntcItem;
+            let ntcBlockParts = [ntc];
+            let hasContent = false;
+
+            if ((filter === 'all' || filter === 'b2c') && b2cList.length > 0) {
+                ntcBlockParts.push("\nB2C/Heavy");
+                ntcBlockParts.push(...b2cList);
+                hasContent = true;
+            }
+
+            if ((filter === 'all' || filter === 'b2b') && b2bList.length > 0) {
+                ntcBlockParts.push("\nB2B");
+                ntcBlockParts.push(...b2bList);
+                hasContent = true;
+            }
+            
+            if (hasContent) {
+                reportParts.push(ntcBlockParts.join("\n"));
+            }
+        });
+        return reportParts.join("\n\n");
+    }
+
+    function renderLiveReportModal(reportData) {
+        modalActions.innerHTML = `
+            <button id="copyReportBtn" class="primary-btn">Copy Report</button>
+            <button id="closeDetailsModal" class="text-slate-400 hover:text-white ml-4"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        `;
+
+        detailsModalContent.innerHTML = `
+            <div id="report-filter-group" class="report-filter-group">
+                <button class="report-filter-btn active" data-filter="all">All</button>
+                <button class="report-filter-btn" data-filter="b2c">B2C/Heavy</button>
+                <button class="report-filter-btn" data-filter="b2b">B2B</button>
+            </div>
+            <textarea id="report-textarea" readonly class="report-textarea"></textarea>
+        `;
+
+        const reportTextarea = document.getElementById('report-textarea');
+        const filterGroup = document.getElementById('report-filter-group');
+
+        const updateReportView = (filter) => {
+            reportTextarea.value = formatReportText(reportData, filter);
+        };
+        
+        filterGroup.addEventListener('click', e => {
+            const btn = e.target.closest('.report-filter-btn');
+            if (btn) {
+                filterGroup.querySelectorAll('.report-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateReportView(btn.dataset.filter);
+            }
+        });
+
+        // Initial render
+        updateReportView('all');
+    }
+
 
     function setupReviewModalActions() {
         let buttonsHTML = `
@@ -962,10 +1118,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // This entire function is part of LIVE MODE
         if (!fullForecastData) return;
         const summaryPanel = document.getElementById('summary-panel');
+        generateLiveReportBtn.disabled = fullForecastData.length === 0;
+
         if (fullForecastData.length === 0) {
             summaryPanel.innerHTML = `<div class="col-span-full text-center bg-slate-800/50 p-8 rounded-lg border border-slate-700"><h3 class="font-bold text-2xl text-yellow-400 mb-2">No Actionable Data Found</h3><p class="text-slate-400">The uploaded file does not contain any shipments that are currently <b class="text-white">"in_center"</b> and have an <b class="text-white">"is_lock"</b> status of <b class="text-white">"FALSE"</b>.</p><p class="text-slate-500 mt-2">Please upload a file with current operational data to activate the dashboard.</p></div>`;
             document.getElementById('global-alerts-container').innerHTML = '';
-            document.getElementById('recommendation-note-container').innerHTML = '';
             return;
         }
 
@@ -973,7 +1130,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let summaryData = getSummaryData();
         
         renderGlobalAlerts(summaryData);
-        renderRecommendationNote();
 
         if (showUrgentOnly) {
             const fiveHoursFromNow = new Date().getTime() + (5 * 60 * 60 * 1000);
@@ -1119,23 +1275,6 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = alertsHTML;
     }
 
-    function renderRecommendationNote() {
-        // This function is for LIVE MODE
-        const container = document.getElementById('recommendation-note-container');
-        if (fullForecastData && fullForecastData.length > 0) {
-            const isNormalMode = document.getElementById('mode-normal').classList.contains('active');
-            const slaModeText = isNormalMode
-                ? "<b>27h (Normal Mode)</b>" 
-                : "<b>24h (Strict Mode)</b>";
-            container.innerHTML = `
-                <div class="recommendation-note">
-                    <b>Note:</b> Recommendations prioritize shipments that will be >${slaModeText} old at ETD.
-                </div>
-            `;
-        } else {
-            container.innerHTML = '';
-        }
-    }
 });
 </script>
 
