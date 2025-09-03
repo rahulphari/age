@@ -6,6 +6,9 @@
     <title>AGE-SIGHT: Mission Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root {
             --glow-color-critical: rgba(239, 68, 68, 0.7);
@@ -50,10 +53,15 @@
         }
         .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
 
-        /* --- UI Component Styles --- */
+        /* --- General UI --- */
         .main-container { max-width: 95vw; margin: 0 auto; padding: 1.5rem; }
-        
-        /* --- Hotspot Card Styles --- */
+        .primary-btn {
+            background: linear-gradient(45deg, #3b82f6, #2563eb); color: white; font-weight: 600;
+            padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+         .primary-btn:disabled { background: #334155; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
+
+        /* --- Live Mode: Hotspot Card Styles --- */
         .hotspot-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -75,72 +83,33 @@
         .hotspot-total-count { font-size: 0.9rem; font-weight: 500; color: #94a3b8; }
         .hotspot-etd-display { font-size: 1rem; font-weight: 600; color: #facc15; }
         
-        /* Card Alert (Integrated) */
         .card-alert {
-            background-color: rgba(251, 191, 36, 0.08);
-            border: 1px solid rgba(251, 191, 36, 0.2);
-            border-radius: 0.75rem;
-            padding: 0.75rem 1rem;
-            margin: 1rem 0;
-            text-align: left;
+            background-color: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 0.75rem; padding: 0.75rem 1rem; margin: 1rem 0; text-align: left;
         }
         .card-alert-title {
-            font-weight: 700;
-            color: #facc15;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
+            font-weight: 700; color: #facc15; display: flex; align-items: center;
+            gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem;
         }
-        .card-alert-message {
-            font-size: 0.85rem;
-            color: #e2e8f0;
-            line-height: 1.5;
-        }
+        .card-alert-message { font-size: 0.85rem; color: #e2e8f0; line-height: 1.5; }
         .clickable-count {
-            font-weight: 900;
-            color: #fde047;
-            cursor: pointer;
-            text-decoration: underline;
-            text-decoration-style: dotted;
-            text-underline-offset: 3px;
-            transition: color 0.2s;
+            font-weight: 900; color: #fde047; cursor: pointer; text-decoration: underline;
+            text-decoration-style: dotted; text-underline-offset: 3px; transition: color 0.2s;
         }
         .clickable-count:hover { color: #f59e0b; }
-
-        .card-body-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            align-items: center;
-            margin: 1rem 0;
-        }
-        
-        .age-stats-container {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
+        .card-body-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: center; margin: 1rem 0; }
+        .age-stats-container { display: flex; flex-direction: column; gap: 0.5rem; }
         .age-stat {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            font-size: 0.9rem;
-            padding: 0.2rem 0;
-            border-bottom: 1px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: baseline;
+            font-size: 0.9rem; padding: 0.2rem 0; border-bottom: 1px solid #1e293b;
         }
         .age-stat:last-child { border-bottom: none; }
         .age-stat-label { color: #94a3b8; }
         .age-stat-value {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #f8fafc;
-            cursor: pointer;
-            transition: color 0.2s;
+            font-weight: 700; font-size: 1.1rem; color: #f8fafc;
+            cursor: pointer; transition: color 0.2s;
         }
         .age-stat-value:hover { color: #60a5fa; }
-
         .hotspot-pdt-bars { display: flex; flex-direction: column; gap: 0.5rem; }
         .pdt-bar-row { display: flex; align-items: center; gap: 0.5rem; }
         .pdt-bar-label { font-size: 0.75rem; color: #94a3b8; width: 65px; text-align: right; }
@@ -154,11 +123,8 @@
         
         .hotspot-footer { position: relative; padding-top: 1rem; margin-top: auto; border-top: 1px solid #1e293b; }
         .hotspot-actions {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-around;
-            align-items: flex-start;
-            gap: 1rem;
+            display: flex; flex-direction: row; justify-content: space-around;
+            align-items: flex-start; gap: 1rem;
         }
         .hotspot-actions > div { flex: 1; }
         .hotspot-action-btn {
@@ -171,71 +137,65 @@
         .hotspot-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .logic-details { font-size: 0.7rem; color: #64748b; text-align: center; }
 
-        /* Modal & Table Styles */
+        /* --- Modal & Table Styles --- */
         .modal-content { animation: fadeInUp 0.3s ease-out forwards; }
         .data-table { width: 100%; border-collapse: collapse; }
         .data-table th, .data-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #334155; }
         
-        /* Global Alerts */
-        .global-alert {
+        /* --- Global & Mode-Specific Alerts --- */
+        .global-alert, .mode-alert {
             background-color: rgba(15, 23, 42, 0.6); border-left: 5px solid; padding: 1.25rem;
             border-radius: 0.5rem; display: flex; gap: 1rem; align-items: flex-start; backdrop-filter: blur(5px);
         }
-        .global-alert .alert-icon { flex-shrink: 0; }
-        .global-alert.alert-high { border-color: var(--glow-color-high); }
-        .global-alert.alert-high .alert-icon { color: var(--glow-color-high); }
-        .global-alert.alert-insight { border-color: #3b82f6; }
-        .global-alert.alert-insight .alert-icon { color: #3b82f6; }
-        .global-alert .alert-title { font-weight: 700; font-size: 1.1rem; color: #f1f5f9; margin-bottom: 0.25rem; }
-        .global-alert .alert-message { color: #cbd5e1; line-height: 1.6; }
+        .global-alert .alert-icon, .mode-alert .alert-icon { flex-shrink: 0; }
+        .global-alert.alert-high, .mode-alert.alert-high { border-color: var(--glow-color-high); }
+        .global-alert.alert-high .alert-icon, .mode-alert.alert-high .alert-icon { color: var(--glow-color-high); }
+        .global-alert.alert-insight, .mode-alert.alert-insight { border-color: #3b82f6; }
+        .global-alert.alert-insight .alert-icon, .mode-alert.alert-insight .alert-icon { color: #3b82f6; }
+        .global-alert .alert-title, .mode-alert .alert-title { font-weight: 700; font-size: 1.1rem; color: #f1f5f9; margin-bottom: 0.25rem; }
+        .global-alert .alert-message, .mode-alert .alert-message { color: #cbd5e1; line-height: 1.6; }
         
-        /* Recommendation Note */
         .recommendation-note {
             padding: 1rem; margin-bottom: 2rem; border-radius: 0.75rem; border: 1px solid;
             text-align: center; font-weight: 500; color: #fefce8; animation: flash-warning-bg 2s infinite;
         }
 
-        /* Bold Mode Selector */
         .mode-selector {
-            background-color: rgba(15, 23, 42, 0.5);
-            border: 1px solid #1e293b;
-            border-radius: 0.75rem;
-            padding: 0.5rem;
-            display: flex;
-            width: -moz-fit-content;
-            width: fit-content;
-            margin: 0 auto;
+            background-color: rgba(15, 23, 42, 0.5); border: 1px solid #1e293b;
+            border-radius: 0.75rem; padding: 0.5rem; display: flex;
+            width: fit-content; margin: 0 auto;
         }
         .mode-btn {
-            border: 2px solid transparent;
-            background-color: transparent;
-            color: #94a3b8;
-            padding: 0.75rem 2rem;
-            border-radius: 0.5rem;
-            font-weight: 700;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            text-align: center;
+            border: 2px solid transparent; background-color: transparent; color: #94a3b8;
+            padding: 0.75rem 2rem; border-radius: 0.5rem; font-weight: 700;
+            font-size: 1.1rem; cursor: pointer; transition: all 0.2s ease-in-out; text-align: center;
         }
-        .mode-btn .mode-subtitle {
-            font-size: 0.8rem;
-            font-weight: 400;
-            color: #64748b;
-        }
+        .mode-btn .mode-subtitle { font-size: 0.8rem; font-weight: 400; color: #64748b; }
         .mode-btn.active {
-            background-color: #3b82f6;
-            color: white;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            background-color: #3b82f6; color: white; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
         }
-        .mode-btn.active .mode-subtitle {
-            color: #dbeafe;
-        }
+        .mode-btn.active .mode-subtitle { color: #dbeafe; }
 
-        /* Bulk Search Dropdown */
-        .primary-btn {
-            background: linear-gradient(45deg, #3b82f6, #2563eb); color: white; font-weight: 600;
-            padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        /* --- Review Mode Specific Styles --- */
+        #review-mode-view .data-table th { background-color: #1e293b; }
+        .status-btn-group button {
+            padding: 4px 10px; font-size: 12px; border: 1px solid #475569;
+            transition: all 0.2s;
+        }
+        .status-btn-group button:first-child { border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+        .status-btn-group button:last-child { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
+        .status-btn-group button.active-connected { background-color: #22c55e; border-color: #22c55e; color: white; }
+        .status-btn-group button.active-not-connected { background-color: #ef4444; border-color: #ef4444; color: white; }
+        
+        .remarks-container { margin-top: 8px; }
+        .remarks-textarea {
+            width: 100%; background-color: #1e293b; border: 1px solid #334155;
+            border-radius: 6px; color: #cbd5e1; padding: 6px; font-size: 12px;
+        }
+        .remarks-tags { display: flex; gap: 6px; margin-top: 6px; }
+        .remark-tag {
+            background-color: #334155; color: #cbd5e1; font-size: 10px;
+            padding: 2px 8px; border-radius: 99px; cursor: pointer;
         }
     </style>
 </head>
@@ -259,11 +219,10 @@
             <div id="message-area" class="mt-6 text-center"></div>
         </div>
 
-        <!-- Dashboard View -->
-        <div id="dashboard-view" class="hidden space-y-8 fade-in-up">
+        <!-- Live Mode View -->
+        <div id="live-mode-view" class="hidden space-y-8 fade-in-up">
             <div id="global-alerts-container" class="mb-8 space-y-4"></div>
             <div id="recommendation-note-container"></div>
-            
             <div id="mode-selector" class="mode-selector">
                 <button id="mode-normal" class="mode-btn active">
                     <div>Normal Mode</div>
@@ -274,7 +233,6 @@
                     <div class="mode-subtitle">24h SLA (No Buffer)</div>
                 </button>
             </div>
-            
             <div class="flex justify-end items-center gap-4">
                 <label class="flex items-center gap-2 cursor-pointer bg-slate-800/80 p-2 rounded-full text-sm">
                     <span>Urgent Only</span>
@@ -286,7 +244,17 @@
             </div>
             <div id="summary-panel" class="hotspot-grid"></div>
         </div>
+
+        <!-- Review Mode View -->
+        <div id="review-mode-view" class="hidden space-y-8 fade-in-up">
+            <div id="review-mode-alert"></div>
+            <div id="review-table-container"></div>
+            <div id="generate-report-container" class="text-center mt-8">
+                 <button id="generate-report-btn" class="primary-btn" disabled>Generate Report</button>
+            </div>
+        </div>
     </div>
+
     <footer class="text-center text-slate-500 mt-12 border-t border-slate-800 pt-6">
         Designed & Crafted by Rh. | for ⚡ Team Sonic - Hubli (for internal use only)
     </footer>
@@ -294,7 +262,7 @@
 
 <!-- Details Modal -->
 <div id="detailsModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center p-4">
-    <div class="modal-content bg-slate-900 p-6 rounded-lg shadow-2xl w-full max-w-6xl border border-slate-700 flex flex-col">
+    <div class="modal-content bg-slate-900 p-6 rounded-lg shadow-2xl w-full max-w-7xl border border-slate-700 flex flex-col">
         <div class="flex justify-between items-center mb-4">
             <h3 id="detailsModalTitle" class="text-2xl font-bold text-white">Details</h3>
             <div id="modal-actions" class="flex items-center gap-4"></div>
@@ -306,13 +274,18 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // --- STATE MANAGEMENT ---
     let fullForecastData = null;
     let modalCurrentData = [];
     let hasPutawayLocation = false;
     let fileTimestamp = null;
+    let currentMode = 'live'; // 'live' or 'review'
+    let reviewDataStore = {}; // For review mode data
 
+    // --- DOM ELEMENT SELECTORS ---
     const uploadView = document.getElementById('upload-view');
-    const dashboardView = document.getElementById('dashboard-view');
+    const liveModeView = document.getElementById('live-mode-view');
+    const reviewModeView = document.getElementById('review-mode-view');
     const csvUpload = document.getElementById('csv-upload');
     const fileNameEl = document.getElementById('file-name');
     const messageArea = document.getElementById('message-area');
@@ -321,10 +294,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailsModalTitle = document.getElementById('detailsModalTitle');
     const detailsModalContent = document.getElementById('detailsModalContent');
     const modalActions = document.getElementById('modal-actions');
-    
-    // Toggle Setup
     const urgentToggleInput = document.getElementById('show-urgent-toggle');
     const modeSelector = document.getElementById('mode-selector');
+    const generateReportBtn = document.getElementById('generate-report-btn');
+
+    // --- INITIAL SETUP & EVENT LISTENERS ---
 
     function setupToggle(toggleInput, callback) {
         if (!toggleInput) return;
@@ -343,22 +317,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         toggleInput.dispatchEvent(new Event('change'));
     }
-
     setupToggle(urgentToggleInput, renderSummaryPanel);
 
     modeSelector.addEventListener('click', (e) => {
         const targetBtn = e.target.closest('.mode-btn');
         if (!targetBtn || targetBtn.classList.contains('active')) return;
-
         modeSelector.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
         targetBtn.classList.add('active');
         renderSummaryPanel();
     });
 
-
     csvUpload.addEventListener('change', (e) => handleFileUpload(e.target.files));
+
+    // --- REFACTORED EVENT LISTENERS ---
     
-    dashboardView.addEventListener('click', (e) => {
+    liveModeView.addEventListener('click', e => {
         const ageValue = e.target.closest('.age-stat-value');
         if (ageValue) {
             const { ntc, bucket } = ageValue.dataset;
@@ -370,63 +343,78 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cutoffBtn) {
             const { ntc, pdt, cutoff } = cutoffBtn.dataset;
             if (!cutoff || cutoff === 'null') return; 
-            triggerRecommendationModal(ntc, pdt, cutoff);
+            const filteredData = fullForecastData.filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
+            openDetailsModal(`Recommended Ageing List for ${ntc} (${pdt})`, filteredData, true);
         }
 
         const clickableCount = e.target.closest('.clickable-count');
         if (clickableCount) {
             const { ntc, pdt, cutoff } = clickableCount.dataset;
             if (!cutoff || cutoff === 'null') return;
-            triggerRecommendationModal(ntc, pdt, cutoff);
+            const filteredData = fullForecastData.filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
+            openDetailsModal(`Recommended Ageing List for ${ntc} (${pdt})`, filteredData, true);
         }
     });
 
-    function triggerRecommendationModal(ntc, pdt, cutoff) {
-        const pdtsToFilter = pdt.split(',');
-        const filteredData = fullForecastData.filter(r => 
-            r.ntc === ntc &&
-            pdtsToFilter.includes(r.pdt) &&
-            r.age_hours >= parseFloat(cutoff)
-        );
-        const modalTitle = `Recommended Ageing List for ${ntc} (${pdt})`;
-        openDetailsModal(modalTitle, filteredData, true);
-    }
+    reviewModeView.addEventListener('click', e => {
+        const reviewListBtn = e.target.closest('.review-list-btn');
+        if (reviewListBtn) {
+            const { ntc, pdt } = reviewListBtn.dataset;
+            
+            const ntcShipments = fullForecastData.filter(r => r.ntc === ntc);
+            const recommendation = calculateCutoff(ntcShipments, true); 
+            const cutoff = recommendation.cutoff;
 
-    dashboardView.addEventListener('change', (e) => {
-        if (e.target.id === 'show-urgent-toggle') {
-            renderSummaryPanel();
+            const pdtsToFilter = pdt.split(',');
+            let filteredData = fullForecastData.filter(r => r.ntc === ntc && pdtsToFilter.includes(r.pdt));
+            
+            if (cutoff) {
+                filteredData = filteredData.filter(r => r.age_hours >= parseFloat(cutoff));
+            } else {
+                filteredData = [];
+            }
+
+            const modalTitle = `Review Ageing List for ${ntc} (${pdt})`;
+            openDetailsModal(modalTitle, filteredData, false);
         }
     });
+    
+    detailsModal.addEventListener('click', e => {
+        if (e.target === detailsModal) closeAllModals();
 
-    modalActions.addEventListener('click', e => {
-        const target = e.target.closest('button');
-        if (!target) return;
-        if (target.id === 'closeDetailsModal') closeAllModals();
-        if (target.id === 'recommendPickSpacesBtn') showPickSpaces();
-        if (target.id === 'backToDetailsBtn') renderTable(modalCurrentData, null, true);
-        if (target.id === 'copyLocationsBtn') copyPickLocations(target);
+        const statusBtn = e.target.closest('.status-btn');
+        if (statusBtn) handleStatusChange(statusBtn);
+
+        const remarkTag = e.target.closest('.remark-tag');
+        if (remarkTag) {
+            const textarea = remarkTag.closest('.remarks-container').querySelector('textarea');
+            textarea.value += (textarea.value ? ' ' : '') + `[${remarkTag.textContent}]`;
+            const bagId = remarkTag.closest('tr').dataset.bagId;
+            reviewDataStore[bagId].remarks = textarea.value;
+        }
 
         const bulkSearchBtn = e.target.closest('#bulkSearchBtn');
         if (bulkSearchBtn) {
             document.getElementById('bulk-search-dropdown').classList.toggle('hidden');
         } else if (!e.target.closest('#bulk-search-menu')) {
             const dropdown = document.getElementById('bulk-search-dropdown');
-            if(dropdown) dropdown.classList.add('hidden');
+            if (dropdown) dropdown.classList.add('hidden');
         }
+
+        const modalActionBtn = e.target.closest('#modal-actions button');
+        if(modalActionBtn) handleModalActions(modalActionBtn.id);
     });
 
-    detailsModal.addEventListener('click', (e) => { 
-        if (e.target === detailsModal) closeAllModals(); 
-        if (!e.target.closest('#bulk-search-menu')) {
-             const dropdown = document.getElementById('bulk-search-dropdown');
-            if(dropdown) dropdown.classList.add('hidden');
-        }
+    generateReportBtn.addEventListener('click', e => {
+        if(!e.target.disabled) generatePDFReport();
     });
 
+
+    // --- FILE PROCESSING & MODE SWITCHING ---
     function handleFileUpload(files) {
         const file = files[0];
         if (!file) return;
-        fileTimestamp = file.lastModifiedDate;
+        fileTimestamp = new Date(file.lastModified);
         fileNameEl.textContent = file.name;
         const reader = new FileReader();
         reader.onload = (event) => processCsvData(event.target.result);
@@ -434,33 +422,20 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
     }
 
-    function parseCsvLine(line) {
-        const results = [];
-        const regex = /(?:^|,)(\"(?:[^\"]+|\"\")*\"|[^,]*)/g;
-        let match;
-        while (match = regex.exec(line)) {
-            let value = match[1];
-            if (value.startsWith('"') && value.endsWith('"')) {
-                value = value.slice(1, -1).replace(/""/g, '"');
-            }
-            results.push(value.trim());
-        }
-        return results;
-    }
-
     function processCsvData(csvString) {
         showMessage('Processing...', false);
         try {
+            const fileAgeMinutes = (new Date() - fileTimestamp) / 60000;
+            currentMode = fileAgeMinutes > 30 ? 'review' : 'live';
+
             const lines = csvString.trim().split('\n');
             const headerLine = lines[0].trim();
             const rawHeaders = parseCsvLine(headerLine);
             const headers = rawHeaders.map(h => h.replace(/\s+/g, '_').toLowerCase());
-            
             const requiredHeaders = ['bag_id', 'incoming_time', 'pdt', 'bag_status', 'is_lock', 'ntc_used'];
             if (!requiredHeaders.every(h => headers.includes(h))) {
                 throw new Error(`Missing required columns: ${requiredHeaders.filter(h => !headers.includes(h)).join(', ')}`);
             }
-            
             hasPutawayLocation = headers.includes('putaway_location');
             const data = lines.slice(1).map(line => {
                 const values = parseCsvLine(line.trim());
@@ -469,23 +444,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 return obj;
             });
 
-            const totalRows = data.length;
-            const inCenterRows = data.filter(r => r.bag_status && r.bag_status.toLowerCase() === 'in_center').length;
-            fullForecastData = analyzeAndEnrichData(data);
-            const summaryMessage = `<div class="text-left bg-slate-800/50 p-4 rounded-lg border border-slate-700 max-w-md mx-auto"><h4 class="font-bold text-lg text-blue-300 mb-2">File Scan Results:</h4><p>Total Records Found: <b class="text-white">${totalRows}</b></p><p>Records "In Center": <b class="text-white">${inCenterRows}</b></p><p class="mt-2 pt-2 border-t border-slate-700">Actionable Shipments Found: <b class="text-green-400 text-xl">${fullForecastData.length}</b></p></div>`;
+            const baseTime = currentMode === 'review' ? fileTimestamp : new Date();
+            fullForecastData = analyzeAndEnrichData(data, baseTime);
+
+            const summaryMessage = `<div class="text-left bg-slate-800/50 p-4 rounded-lg border border-slate-700 max-w-md mx-auto"><h4 class="font-bold text-lg text-blue-300 mb-2">File Scan Results:</h4><p>Total Records Found: <b class="text-white">${data.length}</b></p><p>Actionable Shipments Found: <b class="text-green-400 text-xl">${fullForecastData.length}</b></p></div>`;
             showMessage(summaryMessage, false);
 
             setTimeout(() => {
-                setupDashboard();
+                if (currentMode === 'live') {
+                    setupLiveModeDashboard();
+                } else {
+                    setupReviewModeDashboard();
+                }
             }, 1500);
 
         } catch (error) {
             showMessage(`An error occurred: ${error.message}`, true);
         }
     }
-
-    function analyzeAndEnrichData(data) {
-        const now = new Date();
+    
+    function analyzeAndEnrichData(data, baseTime) {
+        const now = new Date(baseTime);
         return data
             .filter(row => row.bag_status && row.is_lock && row.bag_status.toLowerCase() === 'in_center' && row.is_lock.toUpperCase() === 'FALSE')
             .map(row => {
@@ -511,20 +490,22 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(Boolean);
     }
     
-    function setupDashboard() {
+    // --- LIVE MODE FUNCTIONS ---
+    function setupLiveModeDashboard() {
         uploadView.classList.add('hidden');
-        dashboardView.classList.remove('hidden');
+        reviewModeView.classList.add('hidden');
+        liveModeView.classList.remove('hidden');
         renderSummaryPanel();
     }
-    
-    function calculateCutoff(shipments) {
-        const now = new Date();
+
+    function calculateCutoff(shipments, forceNormal = false) {
+        const now = currentMode === 'review' ? fileTimestamp : new Date();
         const relevantShipments = shipments.filter(r => r.etd && new Date(r.etd.replace(' ', 'T')) > now);
         if (relevantShipments.length === 0) return { cutoff: null, nextETD: null };
         const nextETD = new Date(Math.min(...relevantShipments.map(r => new Date(r.etd.replace(' ', 'T')))));
         const timeUntilNextETD_hours = (nextETD - now) / (1000 * 60 * 60);
         
-        const isNormalMode = document.getElementById('mode-normal').classList.contains('active');
+        const isNormalMode = forceNormal || document.getElementById('mode-normal').classList.contains('active');
         const slaHours = isNormalMode ? 27 : 24;
         const cutoffForSLA = slaHours - timeUntilNextETD_hours;
 
@@ -534,8 +515,290 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // --- REVIEW MODE FUNCTIONS ---
+    function setupReviewModeDashboard() {
+        uploadView.classList.add('hidden');
+        liveModeView.classList.add('hidden');
+        reviewModeView.classList.remove('hidden');
+        reviewDataStore = {};
+
+        document.getElementById('review-mode-alert').innerHTML = `
+            <div class="mode-alert alert-insight">
+                <div class="alert-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.414L11 9.586V6z" clip-rule="evenodd" /></svg></div>
+                <div>
+                    <div class="alert-title">REVIEW MODE ACTIVATED</div>
+                    <p class="alert-message">File is older than 30 minutes. Time is frozen to <b>${fileTimestamp.toLocaleString()}</b>. All lists generated are based on Normal Mode (27h SLA).</p>
+                </div>
+            </div>`;
+        
+        const summary = getSummaryData();
+        
+        summary.sort((a, b) => {
+            if (a.data.soonestETD === null && b.data.soonestETD === null) return 0;
+            if (a.data.soonestETD === null) return 1;
+            if (b.data.soonestETD === null) return -1;
+            return a.data.soonestETD - b.data.soonestETD;
+        });
+
+        const container = document.getElementById('review-table-container');
+        if (summary.length > 0) {
+            container.innerHTML = `
+            <table class="data-table w-full">
+                <thead><tr><th>NTC</th><th>Actions</th></tr></thead>
+                <tbody>
+                ${summary.map(item => {
+                    const { ntc, data, b2c_heavy_recommendation, b2b_recommendation } = item;
+
+                    const b2cCutoff = b2c_heavy_recommendation.cutoff;
+                    let b2cCount = 0;
+                    if (b2cCutoff) {
+                        b2cCount = fullForecastData.filter(r => r.ntc === ntc && r.pdt !== 'B2B' && r.age_hours >= parseFloat(b2cCutoff)).length;
+                    }
+
+                    const b2bCutoff = b2b_recommendation.cutoff;
+                    let b2bCount = 0;
+                    if (b2bCutoff) {
+                        b2bCount = fullForecastData.filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff)).length;
+                    }
+
+                    return `
+                        <tr data-ntc="${ntc}">
+                            <td class="font-bold text-lg">${ntc}</td>
+                            <td class="flex gap-2">
+                                <button class="hotspot-action-btn review-list-btn" data-ntc="${ntc}" data-pdt="B2C,Heavy" ${b2cCount === 0 ? 'disabled' : ''}>B2C/H List (${b2cCount})</button>
+                                <button class="hotspot-action-btn review-list-btn" data-ntc="${ntc}" data-pdt="B2B" ${b2bCount === 0 ? 'disabled' : ''}>B2B List (${b2bCount})</button>
+                            </td>
+                        </tr>
+                    `}).join('')}
+                </tbody>
+            </table>`;
+        } else {
+            container.innerHTML = `<div class="text-center bg-slate-800/50 p-8 rounded-lg border border-slate-700"><h3 class="font-bold text-2xl text-yellow-400 mb-2">No Data for Review</h3><p class="text-slate-400">The uploaded file does not contain any actionable shipments to review based on its timestamp.</p></div>`;
+            generateReportBtn.disabled = true;
+        }
+    }
+
+    function handleStatusChange(button) {
+        const bagId = button.closest('tr').dataset.bagId;
+        const group = button.closest('.status-btn-group');
+        const remarksContainer = button.closest('tr').querySelector('.remarks-container');
+        const newStatus = button.dataset.status;
+
+        group.querySelectorAll('button').forEach(btn => btn.classList.remove('active-connected', 'active-not-connected'));
+        
+        if (newStatus === 'Connected') {
+            button.classList.add('active-connected');
+            remarksContainer.innerHTML = '';
+            reviewDataStore[bagId] = { status: 'Connected', remarks: '' };
+        } else {
+            button.classList.add('active-not-connected');
+            remarksContainer.innerHTML = `
+                <textarea class="remarks-textarea" placeholder="Enter remarks..."></textarea>
+                <div class="remarks-tags">
+                    <span class="remark-tag">Ops Failure</span>
+                    <span class="remark-tag">Missing</span>
+                    <span class="remark-tag">Uncontrollable</span>
+                </div>
+            `;
+            reviewDataStore[bagId] = { status: 'Not Connected', remarks: '' };
+            remarksContainer.querySelector('textarea').addEventListener('input', e => {
+                reviewDataStore[bagId].remarks = e.target.value;
+            });
+        }
+        
+        const ntc = modalCurrentData[0].ntc;
+        const isNTCReviewed = modalCurrentData.every(item => reviewDataStore[item.bag_id] && reviewDataStore[item.bag_id].status);
+        if (isNTCReviewed) {
+             document.querySelector(`#review-mode-view tr[data-ntc="${ntc}"]`).classList.add('bg-green-900/50');
+             generateReportBtn.disabled = false;
+        }
+    }
+    
+    // --- MODAL & DYNAMIC CONTENT FUNCTIONS ---
+    function openDetailsModal(title, data, isSuggestion) {
+        modalCurrentData = data;
+        detailsModalTitle.textContent = title;
+        if (currentMode === 'live') {
+            renderTable(data, detailsModalContent, isSuggestion);
+            updateBulkSearchLinks(data);
+        } else { // Review Mode
+            renderReviewTable(data);
+            updateBulkSearchLinks(data);
+        }
+        detailsModal.classList.remove('hidden');
+        detailsModal.classList.add('flex');
+    }
+
+    function handleModalActions(actionId) {
+        switch(actionId) {
+            case 'closeDetailsModal': closeAllModals(); break;
+            case 'recommendPickSpacesBtn': showPickSpaces(); break;
+            case 'backToDetailsBtn': renderTable(modalCurrentData, null, true); break;
+            case 'copyLocationsBtn': copyPickLocations(target); break;
+            case 'mark-all-connected':
+                modalCurrentData.forEach(item => {
+                    const btn = document.querySelector(`tr[data-bag-id="${item.bag_id}"] .status-btn[data-status="Connected"]`);
+                    if(btn) handleStatusChange(btn);
+                });
+                break;
+            case 'mark-all-not-connected':
+                 modalCurrentData.forEach(item => {
+                    const btn = document.querySelector(`tr[data-bag-id="${item.bag_id}"] .status-btn[data-status="Not Connected"]`);
+                    if(btn) handleStatusChange(btn);
+                });
+                break;
+        }
+    }
+    
+    function renderReviewTable(data) {
+        setupReviewModalActions();
+        if (data.length === 0) {
+            detailsModalContent.innerHTML = `<p class="text-slate-400 p-8 text-center">No shipments match.</p>`;
+            return;
+        }
+
+        data.forEach(item => {
+            if (!reviewDataStore[item.bag_id]) {
+                reviewDataStore[item.bag_id] = { status: null, remarks: '' };
+            }
+        });
+
+        const table = document.createElement('table');
+        table.className = 'data-table';
+        table.innerHTML = `
+            <thead><tr>
+                <th>Bag ID</th><th>Age (Hrs)</th><th>NTC</th><th>Client</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+            ${data.map(wbn => `
+                <tr data-bag-id="${wbn.bag_id}">
+                    <td><a href="${getBagIdLink(wbn.bag_id)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${wbn.bag_id}</a></td>
+                    <td>${wbn.age_hours}</td>
+                    <td>${wbn.ntc}</td>
+                    <td class="truncate" title="${wbn.client}">${wbn.client}</td>
+                    <td>
+                        <div class="status-btn-group" role="group">
+                            <button type="button" class="status-btn" data-status="Connected">Connected</button>
+                            <button type="button" class="status-btn" data-status="Not Connected">Not Connected</button>
+                        </div>
+                        <div class="remarks-container"></div>
+                    </td>
+                </tr>
+            `).join('')}
+            </tbody>`;
+        detailsModalContent.innerHTML = '';
+        detailsModalContent.appendChild(table);
+    }
+
+    function setupReviewModalActions() {
+        let buttonsHTML = `
+            <button id="mark-all-connected" class="primary-btn">Mark All Connected</button>
+            <button id="mark-all-not-connected" class="primary-btn bg-red-600">Mark All Not Connected</button>
+            <div class="relative" id="bulk-search-menu">
+                 <button id="bulkSearchBtn" class="primary-btn flex items-center gap-2">
+                    <span>Bulk Search in HQ</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="bulk-search-dropdown" class="hidden absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 z-10">
+                    <div class="py-1">
+                        <a href="#" id="bulkSearchBagsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
+                        <a href="#" id="bulkSearchShipmentsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
+                    </div>
+                </div>
+            </div>
+            <button id="closeDetailsModal" class="text-slate-400 hover:text-white ml-4"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        `;
+        modalActions.innerHTML = buttonsHTML;
+    }
+    
+    function generatePDFReport() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        const reviewedNTCs = Object.keys(reviewDataStore).map(bagId => {
+            const item = fullForecastData.find(d => d.bag_id === bagId);
+            return item ? item.ntc : null;
+        }).filter((value, index, self) => self.indexOf(value) === index && value !== null);
+
+        let finalY = 20;
+
+        doc.setFontSize(18);
+        doc.text("AGE-SIGHT Connection Review Report", 105, finalY, { align: 'center' });
+        finalY += 8;
+        doc.setFontSize(10);
+        doc.text(`Report Generated: ${new Date().toLocaleString()}`, 105, finalY, { align: 'center' });
+        finalY += 4;
+        doc.text(`Data Timestamp: ${fileTimestamp.toLocaleString()}`, 105, finalY, { align: 'center' });
+        finalY += 10;
+
+
+        reviewedNTCs.forEach(ntc => {
+            const ntcData = Object.entries(reviewDataStore)
+                .map(([bagId, review]) => {
+                    const itemData = fullForecastData.find(d => d.bag_id === bagId);
+                    if (itemData && itemData.ntc === ntc) {
+                        return { ...itemData, ...review };
+                    }
+                    return null;
+                }).filter(Boolean);
+            
+            if (ntcData.length === 0) return;
+
+            doc.setFontSize(14);
+            doc.text(`Review for NTC: ${ntc}`, 14, finalY);
+            finalY += 8;
+
+            const tableColumn = ["Bag ID", "Age (Hrs)", "Client", "Status", "Remarks"];
+            const tableRows = [];
+
+            ntcData.forEach(item => {
+                const rowData = [
+                    item.bag_id,
+                    item.age_hours,
+                    item.client,
+                    item.status,
+                    item.remarks
+                ];
+                tableRows.push(rowData);
+            });
+            
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: finalY,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 41, 59] },
+                didDrawPage: function (data) {
+                    finalY = data.cursor.y;
+                }
+            });
+            finalY = doc.previousAutoTable.finalY + 10;
+        });
+
+        doc.save(`AGE-SIGHT_Review_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    }
+
+    // --- UTILITY FUNCTIONS ---
+    function parseCsvLine(line) {
+        const results = [];
+        const regex = /(?:^|,)(\"(?:[^\"]+|\"\")*\"|[^,]*)/g;
+        let match;
+        while (match = regex.exec(line)) {
+            let value = match[1];
+            if (value.startsWith('"') && value.endsWith('"')) {
+                value = value.slice(1, -1).replace(/""/g, '"');
+            }
+            results.push(value.trim());
+        }
+        return results;
+    }
+    
+    // --- SHARED & REFACTORED FUNCTIONS ---
+    
     function getSummaryData() {
         if (!fullForecastData) return [];
+        const baseTime = currentMode === 'review' ? fileTimestamp : new Date();
+
         const summary = fullForecastData.reduce((acc, row) => {
             const { ntc, pdt, etd } = row;
             if (!acc[ntc]) {
@@ -547,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
             acc[ntc].total++;
             if (etd) {
                 const etdDate = new Date(etd.replace(' ', 'T'));
-                if (!isNaN(etdDate) && etdDate > new Date() && (!acc[ntc].soonestETD || etdDate < acc[ntc].soonestETD)) {
+                if (!isNaN(etdDate) && etdDate > baseTime && (!acc[ntc].soonestETD || etdDate < acc[ntc].soonestETD)) {
                     acc[ntc].soonestETD = etdDate;
                 }
             }
@@ -564,13 +827,142 @@ document.addEventListener('DOMContentLoaded', () => {
             if (severityScore > data.total * 0.5) severityLevel = 'medium';
             if (severityScore > data.total) severityLevel = 'high';
             if (severeCount > 20 && (severeCount / data.total) > 0.3) severityLevel = 'critical';
-            return { ntc, data, severityScore, severityLevel, b2c_heavy_recommendation: calculateCutoff(b2cHeavyShipments), b2b_recommendation: calculateCutoff(b2bShipments) };
+            return { ntc, data, severityScore, severityLevel, b2c_heavy_recommendation: calculateCutoff(b2cHeavyShipments, true), b2b_recommendation: calculateCutoff(b2bShipments, true) };
         });
     }
 
+    function getCountdownString(etdDate, baseTime) {
+        const now = baseTime ? new Date(baseTime) : new Date();
+        const diff = new Date(etdDate) - now;
+        if (diff <= 0) return 'Departed';
+        const hours = Math.floor(diff / 3600000);
+        const minutes = Math.floor((diff % 3600000) / 60000);
+        return `${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m`;
+    }
+
+    function getBagIdLink(bagId) {
+        const cleanedId = (bagId || '').replace(/[^a-zA-Z0-9]/g, '');
+        if (!cleanedId) return '#';
+        const isNumeric = /^\d+$/.test(cleanedId);
+        return isNumeric ? `https://hq.delhivery.com/p/pntrzz/${cleanedId}/` : `https://hq.delhivery.com/bag/${cleanedId}/`;
+    }
+
+    function renderTable(data, container, isSuggestion) { // This is for LIVE mode
+        setupModalActions('table', isSuggestion);
+        if (data.length === 0) {
+            detailsModalContent.innerHTML = `<p class="text-slate-400 p-8 text-center">No shipments match.</p>`;
+            return;
+        }
+        const table = document.createElement('table');
+        table.className = 'data-table';
+        table.innerHTML = `
+            <thead><tr>
+                <th>Bag ID</th><th>Age (Hrs)</th>${hasPutawayLocation ? '<th>Location</th>' : ''}<th>PDT</th><th>Priority</th><th>NTC</th><th>Client</th>
+            </tr></thead>
+            <tbody>
+            ${data.map(wbn => `
+                <tr>
+                    <td><a href="${getBagIdLink(wbn.bag_id)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${wbn.bag_id}</a></td>
+                    <td class="${wbn.age_hours >= 48 ? 'text-red-400 font-bold' : ''}">${wbn.age_hours}</td>
+                    ${hasPutawayLocation ? `<td>${wbn.putaway_location || 'N/A'}</td>` : ''}
+                    <td>${wbn.pdt}</td>
+                    <td>${wbn.priority}</td>
+                    <td>${wbn.ntc}${wbn.ntc_mismatch ? `<span class="ntc-suggestion-glow" title="Suggested: ${wbn.ntc_suggested}">*${wbn.ntc_suggested}</span>` : ''}</td>
+                    <td class="truncate" title="${wbn.client}">${wbn.client}</td>
+                </tr>
+            `).join('')}
+            </tbody>`;
+        detailsModalContent.innerHTML = '';
+        detailsModalContent.appendChild(table);
+    }
+    
+    function updateBulkSearchLinks(data) {
+        const bags = [];
+        const shipments = [];
+        data.forEach(item => {
+            const cleanedId = (item.bag_id || '').replace(/[^a-zA-Z0-9]/g, '');
+            if (!cleanedId) return;
+            /^\d+$/.test(cleanedId) ? shipments.push(cleanedId) : bags.push(cleanedId);
+        });
+        const bagsLink = document.getElementById('bulkSearchBagsLink');
+        const shipmentsLink = document.getElementById('bulkSearchShipmentsLink');
+        if (bagsLink && shipmentsLink) {
+            bagsLink.href = bags.length > 0 ? `https://hq.delhivery.com/bag/list/1?bs=${bags.join('+')}` : '#';
+            bagsLink.classList.toggle('opacity-50', bags.length === 0);
+            bagsLink.classList.toggle('cursor-not-allowed', bags.length === 0);
+            bagsLink.textContent = `Bulk Search Bags (${bags.length})`;
+            shipmentsLink.href = shipments.length > 0 ? `https://hq.delhivery.com/p/list/1?type=waybill&q=${shipments.join('%20')}` : '#';
+            shipmentsLink.classList.toggle('opacity-50', shipments.length === 0);
+            shipmentsLink.classList.toggle('cursor-not-allowed', shipments.length === 0);
+            shipmentsLink.textContent = `Bulk Search Shipments (${shipments.length})`;
+        }
+    }
+
+    function showPickSpaces() {
+        const locations = [...new Set(modalCurrentData.map(item => item.putaway_location).filter(Boolean))];
+        setupModalActions('locations');
+        if (locations.length === 0) {
+            detailsModalContent.innerHTML = `<p class="text-slate-400 p-8 text-center">No putaway locations found.</p>`;
+            return;
+        }
+        detailsModalContent.innerHTML = `<div class="flex flex-wrap gap-3 p-4">${locations.sort().map(loc => `<span class="bg-slate-700 text-slate-200 font-mono text-lg py-2 px-4 rounded-md">${loc}</span>`).join('')}</div>`;
+    }
+
+    function setupModalActions(view, isSuggestion = false) { // This is for LIVE mode
+        let buttonsHTML = '';
+        if (view === 'table') {
+            buttonsHTML += `
+            <div class="relative" id="bulk-search-menu">
+                <button id="bulkSearchBtn" class="primary-btn flex items-center gap-2">
+                    <span>Bulk Search in HQ</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="bulk-search-dropdown" class="hidden absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 z-10">
+                    <div class="py-1">
+                        <a href="#" id="bulkSearchBagsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
+                        <a href="#" id="bulkSearchShipmentsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
+                    </div>
+                </div>
+            </div>`;
+            if (isSuggestion && hasPutawayLocation) {
+                buttonsHTML += `<button id="recommendPickSpacesBtn" class="primary-btn" style="background: linear-gradient(45deg, #f59e0b, #facc15);">Recommend Pick Spaces</button>`;
+            }
+        } else if (view === 'locations') {
+            buttonsHTML += `<button id="backToDetailsBtn" class="secondary-btn">Back to Details</button><button id="copyLocationsBtn" class="primary-btn">Copy Locations</button>`;
+        }
+        buttonsHTML += `<button id="closeDetailsModal" class="text-slate-400 hover:text-white ml-4"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>`;
+        modalActions.innerHTML = buttonsHTML;
+    }
+
+    function closeAllModals() {
+        detailsModal.classList.add('hidden');
+        detailsModal.classList.remove('flex');
+        modalCurrentData = [];
+    }
+    
+    function copyPickLocations(button) {
+        const locations = [...detailsModalContent.querySelectorAll('span')].map(span => span.textContent.trim());
+        if (locations.length > 0) {
+            navigator.clipboard.writeText(locations.join('\n')).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                setTimeout(() => { button.textContent = originalText; }, 2000);
+            });
+        }
+    }
+
+    function showMessage(msg, isError) {
+        messageArea.innerHTML = msg;
+        messageArea.className = isError 
+            ? `mt-4 text-center p-3 rounded-md text-red-200 bg-red-900/40` 
+            : `mt-4 text-center`;
+    }
+
     function renderSummaryPanel() {
+        // This entire function is part of LIVE MODE
+        if (!fullForecastData) return;
         const summaryPanel = document.getElementById('summary-panel');
-        if (!fullForecastData || fullForecastData.length === 0) {
+        if (fullForecastData.length === 0) {
             summaryPanel.innerHTML = `<div class="col-span-full text-center bg-slate-800/50 p-8 rounded-lg border border-slate-700"><h3 class="font-bold text-2xl text-yellow-400 mb-2">No Actionable Data Found</h3><p class="text-slate-400">The uploaded file does not contain any shipments that are currently <b class="text-white">"in_center"</b> and have an <b class="text-white">"is_lock"</b> status of <b class="text-white">"FALSE"</b>.</p><p class="text-slate-500 mt-2">Please upload a file with current operational data to activate the dashboard.</p></div>`;
             document.getElementById('global-alerts-container').innerHTML = '';
             document.getElementById('recommendation-note-container').innerHTML = '';
@@ -683,6 +1075,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderGlobalAlerts(summaryData) {
+        // This function is for LIVE MODE
         const container = document.getElementById('global-alerts-container');
         let alertsHTML = '';
 
@@ -702,13 +1095,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <b>${totalShipments}</b> total actionable shipments. <b>${agedPercentage}%</b> are currently aged over 24 hours. Monitor medium-priority NTCs to prevent future bottlenecks.
                     </p>
                 </div>
-            </div>
-        `;
+            </div>`;
         
         // File Age Warning
         if (fileTimestamp) {
             const fileAgeHours = (new Date() - fileTimestamp) / 3600000;
-            if (fileAgeHours > 1) {
+            if (fileAgeHours > 1 && fileAgeHours <= 24) { // Only show for relatively recent files in Live Mode
                 alertsHTML += `
                 <div class="global-alert alert-high">
                     <div class="alert-icon">
@@ -720,16 +1112,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             Current view is based on data that is <b>${fileAgeHours.toFixed(1)} hours old</b>. A new file upload is recommended for real-time accuracy.
                         </p>
                     </div>
-                </div>
-                `;
+                </div>`;
             }
         }
 
         container.innerHTML = alertsHTML;
     }
 
-
     function renderRecommendationNote() {
+        // This function is for LIVE MODE
         const container = document.getElementById('recommendation-note-container');
         if (fullForecastData && fullForecastData.length > 0) {
             const isNormalMode = document.getElementById('mode-normal').classList.contains('active');
@@ -743,175 +1134,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         } else {
             container.innerHTML = '';
-        }
-    }
-
-    function getCountdownString(etdDate) {
-        const diff = new Date(etdDate) - new Date();
-        if (diff <= 0) return 'Departed';
-        const hours = Math.floor(diff / (3600000));
-        const minutes = Math.floor((diff % 3600000) / 60000);
-        return `${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m`;
-    }
-
-    function getBagIdLink(bagId) {
-        const cleanedId = (bagId || '').replace(/[^a-zA-Z0-9]/g, '');
-        if (!cleanedId) return '#'; // Return a non-functional link if ID is empty
-        
-        const isNumeric = /^\d+$/.test(cleanedId);
-
-        if (isNumeric) {
-            // It's a shipment
-            return `https://hq.delhivery.com/p/pntrzz/${cleanedId}/`;
-        } else {
-            // It's a bag
-            return `https://hq.delhivery.com/bag/${cleanedId}/`;
-        }
-    }
-
-    function renderTable(data, container, isSuggestion) {
-        modalCurrentData = data;
-        setupModalActions('table', isSuggestion);
-        if (data.length === 0) {
-            detailsModalContent.innerHTML = `<p class="text-slate-400 p-8 text-center">No shipments match.</p>`;
-            return;
-        }
-        const table = document.createElement('table');
-        table.className = 'data-table';
-        table.innerHTML = `
-            <thead><tr>
-                <th>Bag ID</th><th>Age (Hrs)</th>${hasPutawayLocation ? '<th>Location</th>' : ''}<th>PDT</th><th>Priority</th><th>NTC</th><th>Client</th>
-            </tr></thead>
-            <tbody>
-            ${data.map(wbn => `
-                <tr>
-                    <td><a href="${getBagIdLink(wbn.bag_id)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${wbn.bag_id}</a></td>
-                    <td class="${wbn.age_hours >= 48 ? 'text-red-400 font-bold' : ''}">${wbn.age_hours}</td>
-                    ${hasPutawayLocation ? `<td>${wbn.putaway_location || 'N/A'}</td>` : ''}
-                    <td>${wbn.pdt}</td>
-                    <td>${wbn.priority}</td>
-                    <td>${wbn.ntc}${wbn.ntc_mismatch ? `<span class="ntc-suggestion-glow" title="Suggested: ${wbn.ntc_suggested}">*${wbn.ntc_suggested}</span>` : ''}</td>
-                    <td class="truncate" title="${wbn.client}">${wbn.client}</td>
-                </tr>
-            `).join('')}
-            </tbody>`;
-        detailsModalContent.innerHTML = '';
-        detailsModalContent.appendChild(table);
-    }
-    
-    function openDetailsModal(title, data, isSuggestion) {
-        modalCurrentData = data;
-        detailsModalTitle.textContent = title;
-        renderTable(data, detailsModalContent, isSuggestion);
-        updateBulkSearchLinks(data);
-        detailsModal.classList.remove('hidden');
-        detailsModal.classList.add('flex');
-    }
-
-    function updateBulkSearchLinks(data) {
-        const bags = [];
-        const shipments = [];
-
-        data.forEach(item => {
-            const cleanedId = (item.bag_id || '').replace(/[^a-zA-Z0-9]/g, '');
-            if (!cleanedId) return;
-            
-            const isNumeric = /^\d+$/.test(cleanedId);
-            if (isNumeric) {
-                shipments.push(cleanedId);
-            } else {
-                bags.push(cleanedId);
-            }
-        });
-
-        const bagsLink = document.getElementById('bulkSearchBagsLink');
-        const shipmentsLink = document.getElementById('bulkSearchShipmentsLink');
-
-        if (bags.length > 0) {
-            bagsLink.href = `https://hq.delhivery.com/bag/list/1?bs=${bags.join('+')}`;
-            bagsLink.classList.remove('opacity-50', 'cursor-not-allowed');
-            bagsLink.textContent = `Bulk Search Bags (${bags.length})`;
-        } else {
-            bagsLink.href = '#';
-            bagsLink.classList.add('opacity-50', 'cursor-not-allowed');
-            bagsLink.textContent = 'Bulk Search Bags (0)';
-        }
-
-        if (shipments.length > 0) {
-            shipmentsLink.href = `https://hq.delhivery.com/p/list/1?type=waybill&q=${shipments.join('%20')}`;
-            shipmentsLink.classList.remove('opacity-50', 'cursor-not-allowed');
-            shipmentsLink.textContent = `Bulk Search Shipments (${shipments.length})`;
-        } else {
-            shipmentsLink.href = '#';
-            shipmentsLink.classList.add('opacity-50', 'cursor-not-allowed');
-            shipmentsLink.textContent = 'Bulk Search Shipments (0)';
-        }
-    }
-
-
-    function showPickSpaces() {
-        const locations = [...new Set(modalCurrentData.map(item => item.putaway_location).filter(Boolean))];
-        setupModalActions('locations');
-        if (locations.length === 0) {
-            detailsModalContent.innerHTML = `<p class="text-slate-400 p-8 text-center">No putaway locations found.</p>`;
-            return;
-        }
-        detailsModalContent.innerHTML = `<div class="flex flex-wrap gap-3 p-4">${locations.sort().map(loc => `<span class="bg-slate-700 text-slate-200 font-mono text-lg py-2 px-4 rounded-md">${loc}</span>`).join('')}</div>`;
-    }
-
-    function setupModalActions(view, isSuggestion = false) {
-        let buttonsHTML = '';
-        if (view === 'table') {
-            buttonsHTML += `
-            <div class="relative" id="bulk-search-menu">
-                <button id="bulkSearchBtn" class="primary-btn flex items-center gap-2">
-                    <span>Bulk Search in HQ</span>
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="bulk-search-dropdown" class="hidden absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 z-10">
-                    <div class="py-1">
-                        <a href="#" id="bulkSearchBagsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
-                        <a href="#" id="bulkSearchShipmentsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
-                    </div>
-                </div>
-            </div>`;
-
-            if (isSuggestion && hasPutawayLocation) {
-                buttonsHTML += `<button id="recommendPickSpacesBtn" class="primary-btn" style="background: linear-gradient(45deg, #f59e0b, #facc15);">Recommend Pick Spaces</button>`;
-            }
-        } else if (view === 'locations') {
-            buttonsHTML += `<button id="backToDetailsBtn" class="secondary-btn">Back to Details</button><button id="copyLocationsBtn" class="primary-btn">Copy Locations</button>`;
-        }
-        buttonsHTML += `<button id="closeDetailsModal" class="text-slate-400 hover:text-white ml-4"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>`;
-        modalActions.innerHTML = buttonsHTML;
-    }
-
-    function closeAllModals() {
-        detailsModal.classList.add('hidden');
-        detailsModal.classList.remove('flex');
-        modalCurrentData = [];
-    }
-    
-    function copyToClipboard(data, button) {
-        navigator.clipboard.writeText(data).then(() => {
-            const originalText = button.textContent;
-            button.textContent = 'Copied!';
-            setTimeout(() => { button.textContent = originalText; }, 2000);
-        }).catch(err => console.error('Failed to copy: ', err));
-    }
-    
-    function copyPickLocations(button) {
-        const locations = [...detailsModalContent.querySelectorAll('span')].map(span => span.textContent.trim());
-        if (locations.length > 0) copyToClipboard(locations.join('\n'), button);
-    }
-
-    function showMessage(msg, isError) {
-        const messageArea = document.getElementById('message-area');
-        messageArea.innerHTML = msg;
-        if (isError) {
-            messageArea.className = `mt-4 text-center p-3 rounded-md text-red-200 bg-red-900/40`;
-        } else {
-            messageArea.className = `mt-4 text-center`;
         }
     }
 });
