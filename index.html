@@ -476,7 +476,7 @@
     </div>
 
     <footer class="text-center text-slate-500 mt-12 border-t border-slate-800 pt-6">
-        AGE-SIGHT v2.4 | Designed by Rh. for ⚡ Team Sonic - Hubli
+        AGE-SIGHT v2.5 | Designed by Rh. for ⚡ Team Sonic - Hubli
     </footer>
 </div>
 
@@ -679,23 +679,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         switch(btn.id) {
             case 'internal-ageing-btn':
-                data = originalFullData.filter(r => ['NORTH STORE', 'Delhivery'].includes(r.client.toUpperCase()));
-                title = 'Internal Ageing Shipments';
+                data = originalFullData.filter(r => ['NORTH STORE', 'DELHIVERY'].includes(r.client.toUpperCase()) && r.age_hours >= 24);
+                title = 'Internal Ageing Shipments (>24h)';
                 break;
             case 'pst-ageing-btn':
-                data = fullForecastData.filter(r => r.putaway_category === 'pst');
-                title = 'PST Pending Ageing Shipments';
+                data = fullForecastData.filter(r => r.putaway_category === 'pst' && r.age_hours >= 24);
+                title = 'PST Ageing Shipments (>24h)';
                 break;
             case 'notput-ageing-btn':
-                data = fullForecastData.filter(r => r.putaway_category === 'put_pending');
-                title = 'Not Put Ageing Shipments';
+                data = fullForecastData.filter(r => r.putaway_category === 'put_pending' && r.age_hours >= 24);
+                title = 'Not Put Ageing Shipments (>24h)';
                 break;
             default:
                 return;
         }
         
-        const reportData = [{ ntc: title, b2cList: data.map(i => i.bag_id), b2bList: [] }];
-        openDetailsModal(title, reportData, false, 'ntc-report');
+        const groupedByNTC = data.reduce((acc, item) => {
+            if (!acc[item.ntc]) acc[item.ntc] = [];
+            acc[item.ntc].push(item.bag_id);
+            return acc;
+        }, {});
+        
+        const reportData = Object.keys(groupedByNTC).sort().map(ntc => ({
+            ntc,
+            list: groupedByNTC[ntc]
+        }));
+
+        openDetailsModal(title, reportData, false, 'simple-report');
     });
 
     // --- FILE PROCESSING & MODE SWITCHING ---
@@ -928,7 +938,9 @@ document.addEventListener('DOMContentLoaded', () => {
         modalCurrentData = data;
         detailsModalTitle.textContent = title;
         if (currentMode === 'live') {
-            if (viewType === 'ntc-report' || title === 'Live Ageing Report') {
+            if (viewType === 'simple-report') {
+                renderSimpleReportModal(data);
+            } else if (viewType === 'ntc-report' || title === 'Live Ageing Report') {
                 renderLiveReportModal(data);
             } else {
                 renderTable(data, detailsModalContent, isSuggestion);
@@ -1104,6 +1116,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         return reportParts.join("\n\n");
+    }
+
+    function formatSimpleReportText(reportData) {
+        return reportData.map(item => {
+            return `${item.ntc}\n${item.list.join('\n')}`;
+        }).join('\n\n');
+    }
+
+    function renderSimpleReportModal(reportData) {
+        modalActions.innerHTML = `
+            <button id="copyReportBtn" class="primary-btn">Copy Report</button>
+            <button id="closeDetailsModal" class="text-slate-400 hover:text-white ml-4"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        `;
+        detailsModalContent.innerHTML = `<textarea id="report-textarea" readonly class="report-textarea"></textarea>`;
+        document.getElementById('report-textarea').value = formatSimpleReportText(reportData);
     }
 
     function renderLiveReportModal(reportData) {
@@ -1594,31 +1621,28 @@ document.addEventListener('DOMContentLoaded', () => {
             return acc;
         }, {});
         
-        const sortedNTCs = Object.keys(summary).sort();
+        const summaryList = Object.entries(summary).map(([ntc, counts]) => ({
+            ntc,
+            b2bCount: counts.b2b,
+            b2cCount: counts.b2c_heavy,
+            totalCount: counts.b2b + counts.b2c_heavy
+        }));
 
-        let tableRowsHTML = '';
-        let rowCount = 0;
-        for (const ntc of sortedNTCs) {
-            if (summary[ntc].b2c_heavy > 0) {
-                tableRowsHTML += `<tr>
-                    <td>${ntc}</td>
-                    <td>B2C/Heavy</td>
-                    <td class="font-bold text-red-400">${summary[ntc].b2c_heavy}</td>
-                    <td><button class="view-list-btn" data-ntc="${ntc}" data-pdt="b2c_heavy">View List</button></td>
-                </tr>`;
-                rowCount++;
-            }
-            if (summary[ntc].b2b > 0) {
-                 tableRowsHTML += `<tr>
-                    <td>${ntc}</td>
-                    <td>B2B</td>
-                    <td class="font-bold text-red-400">${summary[ntc].b2b}</td>
-                    <td><button class="view-list-btn" data-ntc="${ntc}" data-pdt="b2b">View List</button></td>
-                </tr>`;
-                rowCount++;
-            }
-        }
+        summaryList.sort((a, b) => b.totalCount - a.totalCount);
 
+        const tableRowsHTML = summaryList.map(item => `
+            <tr>
+                <td>${item.ntc}</td>
+                <td class="font-bold text-red-400">${item.b2bCount}</td>
+                <td class="font-bold text-red-400">${item.b2cCount}</td>
+                <td class="flex gap-2">
+                    ${item.b2bCount > 0 ? `<button class="view-list-btn" data-ntc="${item.ntc}" data-pdt="b2b">View B2B</button>` : ''}
+                    ${item.b2cCount > 0 ? `<button class="view-list-btn" data-ntc="${item.ntc}" data-pdt="b2c_heavy">View B2C/H</button>` : ''}
+                </td>
+            </tr>
+        `).join('');
+        
+        const rowCount = summaryList.length;
         const isCollapsible = rowCount > 5;
 
         let panelHTML = `
@@ -1632,7 +1656,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div id="critical-list-wrapper" class="critical-list-wrapper ${isCollapsible ? 'collapsed' : ''}">
                     <table class="summary-table">
                         <thead>
-                            <tr><th>NTC</th><th>PDT</th><th>Count</th><th>Action</th></tr>
+                            <tr><th>NTC</th><th>B2B Count</th><th>B2C/Heavy Count</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
                             ${tableRowsHTML}
