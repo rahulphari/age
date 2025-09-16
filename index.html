@@ -56,6 +56,20 @@
             padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
        .primary-btn:disabled { background: #334155; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
+       .secondary-action-btn {
+            background-color: #334155;
+            color: #e2e8f0;
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: 1px solid #475569;
+        }
+        .secondary-action-btn:hover {
+            background-color: #475569;
+            color: white;
+        }
 
         /* --- Live Mode: Hotspot Card Styles --- */
         .hotspot-grid {
@@ -384,9 +398,13 @@
 <body class="text-slate-200">
 
 <div class="main-container">
-    <header class="text-center mb-12">
-        <h1 class="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-green-400 to-yellow-400">AGE-SIGHT</h1>
-        <p class="mt-2 text-2xl text-slate-400 font-light tracking-widest">MISSION CONTROL</p>
+    <header class="text-center mb-12 flex justify-between items-center">
+        <div></div> <!-- Spacer -->
+        <div class="flex-grow">
+            <h1 class="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-green-400 to-yellow-400">AGE-SIGHT</h1>
+            <p class="mt-2 text-2xl text-slate-400 font-light tracking-widest">MISSION CONTROL</p>
+        </div>
+        <div id="top-right-actions" class="flex flex-col gap-2 items-end"></div>
     </header>
 
     <div id="app-content">
@@ -418,15 +436,31 @@
             
             <div id="critical-summary-container"></div>
 
-            <div class="flex justify-between items-center gap-4">
+            <div class="flex justify-between items-center gap-4 flex-wrap">
                 <button id="generate-live-report-btn" class="primary-btn" disabled>Generate Ageing Report</button>
-                <label class="flex items-center gap-2 cursor-pointer bg-slate-800/80 p-2 rounded-full text-sm">
-                    <span>Urgent Only</span>
-                    <div class="toggle-switch relative inline-block w-10 h-6">
-                        <input type="checkbox" id="show-urgent-toggle" class="opacity-0 w-0 h-0" checked>
-                        <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-700 rounded-full transition-colors duration-300 before:absolute before:content-[''] before:h-4 before:w-4 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-transform before:duration-300"></span>
-                    </div>
-                </label>
+                <div id="view-filters" class="flex gap-4 items-center flex-wrap">
+                    <label class="flex items-center gap-2 cursor-pointer bg-slate-800/80 p-2 rounded-full text-sm">
+                        <span>Include PST</span>
+                        <div class="toggle-switch relative inline-block w-10 h-6">
+                            <input type="checkbox" id="include-pst-toggle" class="opacity-0 w-0 h-0">
+                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-700 rounded-full transition-colors duration-300 before:absolute before:content-[''] before:h-4 before:w-4 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-transform before:duration-300"></span>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer bg-slate-800/80 p-2 rounded-full text-sm">
+                        <span>Include Put Pending</span>
+                        <div class="toggle-switch relative inline-block w-10 h-6">
+                            <input type="checkbox" id="include-put-pending-toggle" class="opacity-0 w-0 h-0" checked>
+                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-700 rounded-full transition-colors duration-300 before:absolute before:content-[''] before:h-4 before:w-4 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-transform before:duration-300"></span>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer bg-slate-800/80 p-2 rounded-full text-sm">
+                        <span>Urgent Only</span>
+                        <div class="toggle-switch relative inline-block w-10 h-6">
+                            <input type="checkbox" id="show-urgent-toggle" class="opacity-0 w-0 h-0" checked>
+                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-700 rounded-full transition-colors duration-300 before:absolute before:content-[''] before:h-4 before:w-4 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-transform before:duration-300"></span>
+                        </div>
+                    </label>
+                </div>
             </div>
             <div id="summary-panel" class="hotspot-grid"></div>
         </div>
@@ -442,7 +476,7 @@
     </div>
 
     <footer class="text-center text-slate-500 mt-12 border-t border-slate-800 pt-6">
-        AGE-SIGHT v2.3 | Designed by Rh. for ⚡ Team Sonic - Hubli
+        AGE-SIGHT v2.4 | Designed by Rh. for ⚡ Team Sonic - Hubli
     </footer>
 </div>
 
@@ -461,7 +495,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // --- STATE MANAGEMENT ---
-    let fullForecastData = null;
+    let originalFullData = [];
+    let fullForecastData = [];
     let modalCurrentData = [];
     let hasPutawayLocation = false;
     let fileTimestamp = null;
@@ -481,9 +516,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailsModalContent = document.getElementById('detailsModalContent');
     const modalActions = document.getElementById('modal-actions');
     const urgentToggleInput = document.getElementById('show-urgent-toggle');
+    const pstToggleInput = document.getElementById('include-pst-toggle');
+    const putPendingToggleInput = document.getElementById('include-put-pending-toggle');
     const modeSelector = document.getElementById('mode-selector');
     const generateReportBtn = document.getElementById('generate-report-btn');
     const generateLiveReportBtn = document.getElementById('generate-live-report-btn');
+    const topRightActions = document.getElementById('top-right-actions');
 
     // --- INITIAL SETUP & EVENT LISTENERS ---
 
@@ -505,6 +543,8 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleInput.dispatchEvent(new Event('change'));
     }
     setupToggle(urgentToggleInput, renderSummaryPanel);
+    setupToggle(pstToggleInput, renderSummaryPanel);
+    setupToggle(putPendingToggleInput, renderSummaryPanel);
 
     modeSelector.addEventListener('click', (e) => {
         const targetBtn = e.target.closest('.mode-btn');
@@ -522,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ageValue = e.target.closest('.age-stat-value');
         if (ageValue) {
             const { ntc, bucket } = ageValue.dataset;
-            const filtered = fullForecastData.filter(r => r.ntc === ntc && r.age_bucket === bucket);
+            const filtered = getCurrentlyVisibleData().filter(r => r.ntc === ntc && r.age_bucket === bucket);
             openDetailsModal(`Details for ${ntc} > ${bucket}`, filtered, false);
         }
 
@@ -530,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cutoffBtn && !cutoffBtn.disabled) {
             const { ntc, pdt, cutoff } = cutoffBtn.dataset;
             if (!cutoff || cutoff === 'null') return; 
-            const filteredData = fullForecastData.filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
+            const filteredData = getCurrentlyVisibleData().filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
             openDetailsModal(`Recommended Ageing List for ${ntc} (${pdt})`, filteredData, true);
         }
 
@@ -538,7 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (clickableCount) {
             const { ntc, pdt, cutoff } = clickableCount.dataset;
             if (!cutoff || cutoff === 'null') return;
-            const filteredData = fullForecastData.filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
+            const filteredData = getCurrentlyVisibleData().filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
             openDetailsModal(`Recommended Ageing List for ${ntc} (${pdt})`, filteredData, true);
         }
         
@@ -556,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (summaryViewBtn) {
             const { ntc, pdt } = summaryViewBtn.dataset;
             const pdtLabel = pdt === 'b2c_heavy' ? 'B2C/Heavy' : 'B2B';
-            const filtered = fullForecastData.filter(r => {
+            const filtered = getCurrentlyVisibleData().filter(r => {
                 const pdtGroup = (r.pdt === 'B2B') ? 'b2b' : 'b2c_heavy';
                 return r.ntc === ntc && pdtGroup === pdt && r.age_hours >= 48;
             });
@@ -630,6 +670,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!e.target.disabled) generatePDFReport();
     });
 
+    topRightActions.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+
+        let data;
+        let title;
+
+        switch(btn.id) {
+            case 'internal-ageing-btn':
+                data = originalFullData.filter(r => ['NORTH STORE', 'Delhivery'].includes(r.client.toUpperCase()));
+                title = 'Internal Ageing Shipments';
+                break;
+            case 'pst-ageing-btn':
+                data = fullForecastData.filter(r => r.putaway_category === 'pst');
+                title = 'PST Pending Ageing Shipments';
+                break;
+            case 'notput-ageing-btn':
+                data = fullForecastData.filter(r => r.putaway_category === 'put_pending');
+                title = 'Not Put Ageing Shipments';
+                break;
+            default:
+                return;
+        }
+        
+        const reportData = [{ ntc: title, b2cList: data.map(i => i.bag_id), b2bList: [] }];
+        openDetailsModal(title, reportData, false, 'ntc-report');
+    });
 
     // --- FILE PROCESSING & MODE SWITCHING ---
     function handleFileUpload(files) {
@@ -666,9 +733,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const baseTime = currentMode === 'review' ? fileTimestamp : new Date();
-            fullForecastData = analyzeAndEnrichData(data, baseTime);
+            const enrichedData = analyzeAndEnrichData(data, baseTime);
 
-            const summaryMessage = `<div class="text-left bg-slate-800/50 p-4 rounded-lg border border-slate-700 max-w-md mx-auto"><h4 class="font-bold text-lg text-blue-300 mb-2">File Scan Results:</h4><p>Total Records Found: <b class="text-white">${data.length}</b></p><p>Actionable Shipments Found: <b class="text-green-400 text-xl">${fullForecastData.length}</b></p></div>`;
+            originalFullData = [...enrichedData];
+            const internalClients = ['NORTH STORE', 'DELHIVERY'];
+            fullForecastData = enrichedData.filter(row => !internalClients.includes(row.client.toUpperCase()));
+
+
+            const summaryMessage = `<div class="text-left bg-slate-800/50 p-4 rounded-lg border border-slate-700 max-w-md mx-auto"><h4 class="font-bold text-lg text-blue-300 mb-2">File Scan Results:</h4><p>Total Records Found: <b class="text-white">${data.length}</b></p><p>External Shipments: <b class="text-green-400 text-xl">${fullForecastData.length}</b></p><p>Internal Shipments: <b class="text-yellow-400 text-lg">${originalFullData.length - fullForecastData.length}</b></p></div>`;
             showMessage(summaryMessage, false);
 
             setTimeout(() => {
@@ -699,6 +771,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 else age_bucket = 'Above 4 Days';
                 const ntcUsed = row.ntc_used || 'Unknown';
                 const ntcSuggested = row.ntc_suggested_by_cluster || 'Unknown';
+
+                let putaway_category = 'default';
+                const location = row.putaway_location || '';
+                if (!location) {
+                    putaway_category = 'put_pending';
+                } else if (location.toUpperCase().includes('PST')) {
+                    putaway_category = 'pst';
+                }
+
                 return { 
                     ...row, 
                     age_hours: parseFloat(age_hours.toFixed(2)), 
@@ -706,6 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ntc: ntcUsed,
                     ntc_suggested: ntcSuggested,
                     ntc_mismatch: ntcUsed !== 'Unknown' && ntcSuggested !== 'Unknown' && ntcUsed !== ntcSuggested,
+                    putaway_category
                 };
             })
             .filter(Boolean);
@@ -716,6 +798,11 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadView.classList.add('hidden');
         reviewModeView.classList.add('hidden');
         liveModeView.classList.remove('hidden');
+        topRightActions.innerHTML = `
+            <button id="internal-ageing-btn" class="secondary-action-btn">Internal Ageing</button>
+            <button id="pst-ageing-btn" class="secondary-action-btn">PST Ageing</button>
+            <button id="notput-ageing-btn" class="secondary-action-btn">Not Put Ageing</button>
+        `;
         renderSummaryPanel();
     }
 
@@ -742,6 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
         liveModeView.classList.add('hidden');
         reviewModeView.classList.remove('hidden');
         reviewDataStore = {};
+        topRightActions.innerHTML = '';
 
         document.getElementById('review-mode-alert').innerHTML = `
             <div class="mode-alert alert-insight">
@@ -752,7 +840,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>`;
         
-        const summary = getSummaryData();
+        const summary = getSummaryData(fullForecastData);
         
         summary.sort((a, b) => {
             if (a.data.soonestETD === null && b.data.soonestETD === null) return 0;
@@ -926,7 +1014,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- REPORTING FUNCTIONS ---
     function generateNTCReport(ntc) {
-        const summaryData = getSummaryData();
+        const dataToUse = getCurrentlyVisibleData();
+        const summaryData = getSummaryData(dataToUse);
         const ntcItem = summaryData.find(item => item.ntc === ntc);
         if (!ntcItem) return;
 
@@ -936,14 +1025,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let b2cList = [];
         if (b2cCutoff) {
-            b2cList = fullForecastData
+            b2cList = dataToUse
                 .filter(r => r.ntc === ntc && r.pdt !== 'B2B' && r.age_hours >= parseFloat(b2cCutoff))
                 .map(item => item.bag_id);
         }
 
         let b2bList = [];
         if (b2bCutoff) {
-            b2bList = fullForecastData
+            b2bList = dataToUse
                 .filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff))
                 .map(item => item.bag_id);
         }
@@ -953,7 +1042,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
         
     function generateLiveReport() {
-        const summaryData = getSummaryData();
+        const dataToUse = getCurrentlyVisibleData();
+        const summaryData = getSummaryData(dataToUse);
         summaryData.sort((a, b) => {
             if (a.data.soonestETD === null && b.data.soonestETD === null) return 0;
             if (a.data.soonestETD === null) return 1;
@@ -969,14 +1059,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let b2cList = [];
             if (b2cCutoff) {
-                b2cList = fullForecastData
+                b2cList = dataToUse
                     .filter(r => r.ntc === ntc && r.pdt !== 'B2B' && r.age_hours >= parseFloat(b2cCutoff))
                     .map(item => item.bag_id);
             }
 
             let b2bList = [];
             if (b2bCutoff) {
-                b2bList = fullForecastData
+                b2bList = dataToUse
                     .filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff))
                     .map(item => item.bag_id);
             }
@@ -1157,11 +1247,24 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- SHARED & REFACTORED FUNCTIONS ---
     
-    function getSummaryData() {
+    function getCurrentlyVisibleData() {
         if (!fullForecastData) return [];
+        let data = fullForecastData;
+        if (!pstToggleInput.checked) {
+            data = data.filter(r => r.putaway_category !== 'pst');
+        }
+        if (!putPendingToggleInput.checked) {
+            data = data.filter(r => r.putaway_category !== 'put_pending');
+        }
+        return data;
+    }
+
+    function getSummaryData(data) {
+        const dataToSummarize = data || getCurrentlyVisibleData();
+        if (!dataToSummarize) return [];
         const baseTime = currentMode === 'review' ? fileTimestamp : new Date();
 
-        const summary = fullForecastData.reduce((acc, row) => {
+        const summary = dataToSummarize.reduce((acc, row) => {
             const { ntc, pdt, etd } = row;
             if (!acc[ntc]) {
                 acc[ntc] = { total: 0, b2c_heavy: { '0 Day': 0, '1 Day': 0, '2-4 Days': 0, 'Above 4 Days': 0, total: 0 }, b2b: { '0 Day': 0, '1 Day': 0, '2-4 Days': 0, 'Above 4 Days': 0, total: 0 }, soonestETD: null };
@@ -1180,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, {});
 
         return Object.entries(summary).map(([ntc, data]) => {
-            const ntcShipments = fullForecastData.filter(r => r.ntc === ntc);
+            const ntcShipments = dataToSummarize.filter(r => r.ntc === ntc);
             const b2cHeavyShipments = ntcShipments.filter(r => r.pdt !== 'B2B');
             const b2bShipments = ntcShipments.filter(r => r.pdt === 'B2B');
             const severeCount = data.b2c_heavy['2-4 Days'] + data.b2c_heavy['Above 4 Days'] + data.b2b['2-4 Days'] + data.b2b['Above 4 Days'];
@@ -1323,17 +1426,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSummaryPanel() {
         // This entire function is part of LIVE MODE
         if (!fullForecastData) return;
+        
+        const dataToUse = getCurrentlyVisibleData();
         const summaryPanel = document.getElementById('summary-panel');
-        generateLiveReportBtn.disabled = fullForecastData.length === 0;
+        generateLiveReportBtn.disabled = dataToUse.length === 0;
 
-        if (fullForecastData.length === 0) {
-            summaryPanel.innerHTML = `<div class="col-span-full text-center bg-slate-800/50 p-8 rounded-lg border border-slate-700"><h3 class="font-bold text-2xl text-yellow-400 mb-2">No Actionable Data Found</h3><p class="text-slate-400">The uploaded file does not contain any shipments that are currently <b class="text-white">"in_center"</b> and have an <b class="text-white">"is_lock"</b> status of <b class="text-white">"FALSE"</b>.</p><p class="text-slate-500 mt-2">Please upload a file with current operational data to activate the dashboard.</p></div>`;
-            document.getElementById('critical-summary-container').innerHTML = '';
+        if (dataToUse.length === 0) {
+            summaryPanel.innerHTML = `<div class="col-span-full text-center bg-slate-800/50 p-8 rounded-lg border border-slate-700"><h3 class="font-bold text-2xl text-yellow-400 mb-2">No Actionable Data Found</h3><p class="text-slate-400">The uploaded file does not contain any shipments matching the current filter criteria.</p></div>`;
+            renderCriticalSummary(); // Still render this to show the "All Clear" message if applicable
             return;
         }
 
         const showUrgentOnly = document.getElementById('show-urgent-toggle').checked;
-        let summaryData = getSummaryData();
+        let summaryData = getSummaryData(dataToUse);
         
         renderCriticalSummary();
 
@@ -1372,11 +1477,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let alertHTML = '';
             let b2cCount = 0;
             if (b2cCutoff) {
-                b2cCount = fullForecastData.filter(r => r.ntc === ntc && r.pdt !== 'B2B' && r.age_hours >= parseFloat(b2cCutoff)).length;
+                b2cCount = dataToUse.filter(r => r.ntc === ntc && r.pdt !== 'B2B' && r.age_hours >= parseFloat(b2cCutoff)).length;
             }
             let b2bCount = 0;
             if (b2bCutoff) {
-                b2bCount = fullForecastData.filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff)).length;
+                b2bCount = dataToUse.filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff)).length;
             }
 
             if (b2cCount > 0 || b2bCount > 0) {
@@ -1396,7 +1501,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>`;
             }
 
-            const ntcShipments = fullForecastData.filter(r => r.ntc === ntc);
+            const ntcShipments = dataToUse.filter(r => r.ntc === ntc);
             const maxAge = ntcShipments.length > 0 ? Math.max(...ntcShipments.map(r => r.age_hours)) : 0;
 
             return `
@@ -1462,8 +1567,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCriticalSummary() {
         // This function is for LIVE MODE
         const container = document.getElementById('critical-summary-container');
+        const dataToUse = getCurrentlyVisibleData();
         
-        const criticalShipments = fullForecastData.filter(r => r.age_hours >= 48);
+        const criticalShipments = dataToUse.filter(r => r.age_hours >= 48);
 
         if (criticalShipments.length === 0) {
             container.innerHTML = `
