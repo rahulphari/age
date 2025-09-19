@@ -55,6 +55,7 @@
             background: linear-gradient(45deg, #3b82f6, #2563eb); color: white; font-weight: 600;
             padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
+       .primary-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); }
        .primary-btn:disabled { background: #334155; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
        .secondary-action-btn {
             background-color: #334155;
@@ -240,9 +241,106 @@
         .mode-btn.active .mode-subtitle { color: #dbeafe; }
 
         /* --- Review Mode Specific Styles --- */
-        #review-mode-view .data-table th { background-color: #1e293b; }
-        #review-mode-view .data-table tbody tr { transition: background-color 0.2s ease; }
-        #review-mode-view .data-table tbody tr:hover { background-color: rgba(30, 41, 59, 0.7); }
+        .review-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        .review-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .review-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            border-color: #3b82f6;
+        }
+        .review-card.is-complete {
+            border-color: #22c55e;
+            background: linear-gradient(145deg, #1e293b, #15803d20);
+        }
+        .review-card-header {
+            text-align: center;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        .review-card-ntc {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #f1f5f9;
+        }
+        .review-card-count {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+        .review-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex-grow: 1;
+        }
+        .review-list-info {
+            display: flex;
+            justify-content: space-between;
+            background-color: rgba(15, 23, 42, 0.5);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+        }
+        .review-list-info .label { color: #94a3b8; font-size: 0.9rem; }
+        .review-list-info .value { color: #f1f5f9; font-weight: 700; font-size: 1.25rem; }
+        .review-progress-container {
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+        .review-progress-label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 0.25rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .review-progress-bar-bg {
+            background-color: #334155;
+            border-radius: 99px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .review-progress-bar {
+            background-color: #22c55e;
+            height: 100%;
+            width: 0%;
+            border-radius: 99px;
+            transition: width 0.5s ease;
+        }
+        .review-action-btn {
+            background: linear-gradient(45deg, #1d4ed8, #2563eb);
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            transition: all 0.2s ease;
+        }
+        .review-action-btn:hover:not(:disabled) {
+            transform: scale(1.03);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        .review-action-btn:disabled {
+            background: #334155;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .review-card.is-complete .review-action-btn {
+             background: linear-gradient(45deg, #16a34a, #22c55e);
+        }
 
         .status-btn-group button {
             padding: 4px 10px; font-size: 12px; border: 1px solid #475569;
@@ -258,11 +356,12 @@
             width: 100%; background-color: #1e293b; border: 1px solid #334155;
             border-radius: 6px; color: #cbd5e1; padding: 6px; font-size: 12px;
         }
-        .remarks-tags { display: flex; gap: 6px; margin-top: 6px; }
+        .remarks-tags { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
         .remark-tag {
             background-color: #334155; color: #cbd5e1; font-size: 10px;
-            padding: 2px 8px; border-radius: 99px; cursor: pointer;
+            padding: 2px 8px; border-radius: 99px; cursor: pointer; transition: background-color 0.2s;
         }
+        .remark-tag:hover { background-color: #475569; }
         
         .report-filter-group {
             display: flex;
@@ -486,7 +585,7 @@
         <!-- Review Mode View -->
         <div id="review-mode-view" class="hidden space-y-8 fade-in-up">
             <div id="review-mode-alert"></div>
-            <div id="review-table-container"></div>
+            <div id="review-cards-container" class="review-grid"></div>
             <div id="generate-report-container" class="text-center mt-8">
                  <button id="generate-report-btn" class="primary-btn" disabled>Generate PDF Report</button>
             </div>
@@ -494,7 +593,7 @@
     </div>
 
     <footer class="text-center text-slate-500 mt-12 border-t border-slate-800 pt-6">
-        AGE-SIGHT v2.6 | Designed by Rh. for ⚡ Team Sonic - Hubli | <span id="update-log-link" class="update-log-link">View Updates</span>
+        AGE-SIGHT v2.7 | Designed by Rh. for ⚡ Team Sonic - Hubli | <span id="update-log-link" class="update-log-link">View Updates</span>
     </footer>
 </div>
 
@@ -519,7 +618,11 @@
         <div class="update-log-content scrollable-pane pr-2 text-slate-300" style="max-height: 70vh; overflow-y: auto;">
             <ul>
                 <li>
-                    <strong>v2.6 (Latest)</strong>
+                    <strong>v2.7 (Latest)</strong>
+                    <p class="text-sm text-slate-400">Major aesthetic and functional overhaul for Review Mode. Replaced the plain table with interactive cards featuring progress tracking. Ensured data filtering logic (PST/Client exceptions) is now consistent between Live and Review modes.</p>
+                </li>
+                <li>
+                    <strong>v2.6</strong>
                     <p class="text-sm text-slate-400">Critical Ageing panel is now collapsible by default. Added this Update Log. Cleaned up UI elements.</p>
                 </li>
                  <li>
@@ -690,25 +793,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     reviewModeView.addEventListener('click', e => {
-        const reviewListBtn = e.target.closest('.review-list-btn');
-        if (reviewListBtn) {
-            const { ntc, pdt } = reviewListBtn.dataset;
-            
-            const ntcShipments = fullForecastData.filter(r => r.ntc === ntc);
-            const recommendation = calculateCutoff(ntcShipments, true); 
-            const cutoff = recommendation.cutoff;
+        const reviewBtn = e.target.closest('.review-action-btn');
+        if (reviewBtn) {
+            const { ntc } = reviewBtn.dataset;
+            const reviewData = JSON.parse(reviewBtn.dataset.reviewData);
 
-            const pdtsToFilter = pdt.split(',');
-            let filteredData = fullForecastData.filter(r => r.ntc === ntc && pdtsToFilter.includes(r.pdt));
-            
-            if (cutoff) {
-                filteredData = filteredData.filter(r => r.age_hours >= parseFloat(cutoff));
-            } else {
-                filteredData = [];
-            }
+            const b2cList = reviewData.b2c;
+            const b2bList = reviewData.b2b;
+            const allBagIds = [...b2cList, ...b2bList];
 
-            const modalTitle = `Review Ageing List for ${ntc} (${pdt})`;
-            openDetailsModal(modalTitle, filteredData, false);
+            const dataToReview = fullForecastData.filter(r => allBagIds.includes(r.bag_id));
+            
+            const modalTitle = `Reviewing Ageing List for ${ntc}`;
+            openDetailsModal(modalTitle, dataToReview, false);
         }
     });
     
@@ -721,9 +818,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const remarkTag = e.target.closest('.remark-tag');
         if (remarkTag) {
             const textarea = remarkTag.closest('.remarks-container').querySelector('textarea');
-            textarea.value += (textarea.value ? ' ' : '') + `[${remarkTag.textContent}]`;
-            const bagId = remarkTag.closest('tr').dataset.bagId;
-            reviewDataStore[bagId].remarks = textarea.value;
+            const currentVal = textarea.value.trim();
+            const tagText = `[${remarkTag.textContent}]`;
+            textarea.value = currentVal ? `${currentVal} ${tagText}` : tagText;
+            textarea.dispatchEvent(new Event('input', { bubbles: true })); // Ensure change is saved
         }
 
         const bulkSearchBtn = e.target.closest('#bulkSearchBtn');
@@ -918,11 +1016,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="alert-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.414L11 9.586V6z" clip-rule="evenodd" /></svg></div>
                 <div>
                     <div class="alert-title">REVIEW MODE ACTIVATED</div>
-                    <p class="alert-message">File is older than 30 minutes. Time is frozen to <b>${fileTimestamp.toLocaleString()}</b>. All lists generated are based on Normal Mode (27h SLA).</p>
+                    <p class="alert-message">File is older than 30 minutes. Time is frozen to <b>${fileTimestamp.toLocaleString()}</b>. Data excludes PST and Not Put shipments. All lists are based on Normal Mode (27h SLA).</p>
                 </div>
             </div>`;
         
-        const summary = getSummaryData(fullForecastData);
+        // **LOGIC CORRECTION**: Ensure review mode uses the same default filters as live mode.
+        const dataToReview = fullForecastData.filter(r => r.putaway_category !== 'pst' && r.putaway_category !== 'put_pending');
+        const summary = getSummaryData(dataToReview);
         
         summary.sort((a, b) => {
             if (a.data.soonestETD === null && b.data.soonestETD === null) return 0;
@@ -931,40 +1031,57 @@ document.addEventListener('DOMContentLoaded', () => {
             return a.data.soonestETD - b.data.soonestETD;
         });
 
-        const container = document.getElementById('review-table-container');
+        const container = document.getElementById('review-cards-container');
         if (summary.length > 0) {
-            container.innerHTML = `
-            <table class="data-table w-full">
-                <thead><tr><th>NTC</th><th>Actions</th></tr></thead>
-                <tbody>
-                ${summary.map(item => {
-                    const { ntc, data, b2c_heavy_recommendation, b2b_recommendation } = item;
+            container.innerHTML = summary.map(item => {
+                const { ntc, data, b2c_heavy_recommendation, b2b_recommendation } = item;
 
-                    const b2cCutoff = b2c_heavy_recommendation.cutoff;
-                    let b2cCount = 0;
-                    if (b2cCutoff) {
-                        b2cCount = fullForecastData.filter(r => r.ntc === ntc && r.pdt !== 'B2B' && r.age_hours >= parseFloat(b2cCutoff)).length;
-                    }
+                const b2cCutoff = b2c_heavy_recommendation.cutoff;
+                const b2cList = b2cCutoff ? dataToReview.filter(r => r.ntc === ntc && r.pdt !== 'B2B' && r.age_hours >= parseFloat(b2cCutoff)).map(r => r.bag_id) : [];
 
-                    const b2bCutoff = b2b_recommendation.cutoff;
-                    let b2bCount = 0;
-                    if (b2bCutoff) {
-                        b2bCount = fullForecastData.filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff)).length;
-                    }
+                const b2bCutoff = b2b_recommendation.cutoff;
+                const b2bList = b2bCutoff ? dataToReview.filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff)).map(r => r.bag_id) : [];
 
-                    return `
-                        <tr data-ntc="${ntc}">
-                            <td class="font-bold text-lg">${ntc}</td>
-                            <td class="flex gap-2">
-                                <button class="hotspot-action-btn review-list-btn" data-ntc="${ntc}" data-pdt="B2C,Heavy" ${b2cCount === 0 ? 'disabled' : ''}>B2C/H List (${b2cCount})</button>
-                                <button class="hotspot-action-btn review-list-btn" data-ntc="${ntc}" data-pdt="B2B" ${b2bCount === 0 ? 'disabled' : ''}>B2B List (${b2bCount})</button>
-                            </td>
-                        </tr>
-                    `}).join('')}
-                </tbody>
-            </table>`;
+                const totalInReview = b2cList.length + b2bList.length;
+                if (totalInReview === 0) return ''; // Don't render a card if there's nothing to review
+
+                const reviewData = { b2c: b2cList, b2b: b2bList };
+                
+                return `
+                    <div class="review-card" id="review-card-${ntc}" data-ntc="${ntc}" data-total-review-items="${totalInReview}">
+                        <div class="review-card-header">
+                            <div class="review-card-ntc">${ntc}</div>
+                            <div class="review-card-count">${data.total} Total Shipments</div>
+                        </div>
+                        <div class="review-card-body">
+                           <div class="review-list-info">
+                                <div class="text-center">
+                                    <div class="label">B2C/Heavy List</div>
+                                    <div class="value">${b2cList.length}</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="label">B2B List</div>
+                                    <div class="value">${b2bList.length}</div>
+                                </div>
+                           </div>
+                           <div class="review-progress-container">
+                                <div class="review-progress-label">
+                                    <span>Review Progress</span>
+                                    <span id="progress-text-${ntc}">0 / ${totalInReview}</span>
+                                </div>
+                                <div class="review-progress-bar-bg">
+                                    <div class="review-progress-bar" id="progress-bar-${ntc}"></div>
+                                </div>
+                           </div>
+                        </div>
+                        <button class="review-action-btn" data-ntc="${ntc}" data-review-data='${JSON.stringify(reviewData)}' ${totalInReview === 0 ? 'disabled' : ''}>
+                            ${totalInReview > 0 ? 'Start Review' : 'No Items to Review'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
         } else {
-            container.innerHTML = `<div class="text-center bg-slate-800/50 p-8 rounded-lg border border-slate-700"><h3 class="font-bold text-2xl text-yellow-400 mb-2">No Data for Review</h3><p class="text-slate-400">The uploaded file does not contain any actionable shipments to review based on its timestamp.</p></div>`;
+            container.innerHTML = `<div class="col-span-full text-center bg-slate-800/50 p-8 rounded-lg border border-slate-700"><h3 class="font-bold text-2xl text-yellow-400 mb-2">No Data for Review</h3><p class="text-slate-400">The uploaded file does not contain any actionable shipments to review based on its timestamp.</p></div>`;
             generateReportBtn.disabled = true;
         }
     }
@@ -979,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (newStatus === 'Connected') {
             button.classList.add('active-connected');
-            remarksContainer.innerHTML = '';
+            remarksContainer.innerHTML = ''; // Clear remarks area
             reviewDataStore[bagId] = { status: 'Connected', remarks: '' };
         } else {
             button.classList.add('active-not-connected');
@@ -989,6 +1106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="remark-tag">Ops Failure</span>
                     <span class="remark-tag">Missing</span>
                     <span class="remark-tag">Uncontrollable</span>
+                    <span class="remark-tag">System Issue</span>
                 </div>
             `;
             reviewDataStore[bagId] = { status: 'Not Connected', remarks: '' };
@@ -997,12 +1115,34 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        const ntc = modalCurrentData[0].ntc;
-        const isNTCReviewed = modalCurrentData.every(item => reviewDataStore[item.bag_id] && reviewDataStore[item.bag_id].status);
-        if (isNTCReviewed) {
-              document.querySelector(`#review-mode-view tr[data-ntc="${ntc}"]`).classList.add('bg-green-900/50');
-              generateReportBtn.disabled = false;
+        const ntc = modalCurrentData[0]?.ntc;
+        if(ntc) updateReviewCardProgress(ntc);
+    }
+    
+    function updateReviewCardProgress(ntc) {
+        const card = document.getElementById(`review-card-${ntc}`);
+        if (!card) return;
+
+        const totalItems = parseInt(card.dataset.totalReviewItems, 10);
+        const reviewData = JSON.parse(card.querySelector('.review-action-btn').dataset.reviewData);
+        const allBagIds = [...reviewData.b2c, ...reviewData.b2b];
+
+        const reviewedCount = allBagIds.filter(bagId => reviewDataStore[bagId]?.status).length;
+        
+        const progressPercent = totalItems > 0 ? (reviewedCount / totalItems) * 100 : 0;
+        
+        document.getElementById(`progress-bar-${ntc}`).style.width = `${progressPercent}%`;
+        document.getElementById(`progress-text-${ntc}`).textContent = `${reviewedCount} / ${totalItems}`;
+
+        if (reviewedCount === totalItems) {
+            card.classList.add('is-complete');
+            card.querySelector('.review-action-btn').textContent = 'Review Complete';
         }
+        
+        // Check if all reviews are complete to enable the report button
+        const allCards = document.querySelectorAll('.review-card');
+        const allComplete = [...allCards].every(c => c.classList.contains('is-complete'));
+        generateReportBtn.disabled = !allComplete;
     }
     
     // --- MODAL & DYNAMIC CONTENT FUNCTIONS ---
@@ -1044,13 +1184,13 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'mark-all-connected':
                 modalCurrentData.forEach(item => {
                     const btn = document.querySelector(`tr[data-bag-id="${item.bag_id}"] .status-btn[data-status="Connected"]`);
-                    if(btn) handleStatusChange(btn);
+                    if(btn && !btn.classList.contains('active-connected')) handleStatusChange(btn);
                 });
                 break;
             case 'mark-all-not-connected':
                  modalCurrentData.forEach(item => {
                     const btn = document.querySelector(`tr[data-bag-id="${item.bag_id}"] .status-btn[data-status="Not Connected"]`);
-                    if(btn) handleStatusChange(btn);
+                    if(btn && !btn.classList.contains('active-not-connected')) handleStatusChange(btn);
                 });
                 break;
         }
@@ -1073,10 +1213,14 @@ document.addEventListener('DOMContentLoaded', () => {
         table.className = 'data-table';
         table.innerHTML = `
             <thead><tr>
-                <th>Bag ID</th><th>Age (Hrs)</th><th>NTC</th><th>Client</th><th>Status</th>
+                <th>Bag ID</th><th>Age (Hrs)</th><th>NTC</th><th>Client</th><th>Status & Remarks</th>
             </tr></thead>
             <tbody>
-            ${data.map(wbn => `
+            ${data.map(wbn => {
+                const storedState = reviewDataStore[wbn.bag_id] || {};
+                const isConnected = storedState.status === 'Connected';
+                const isNotConnected = storedState.status === 'Not Connected';
+                return `
                 <tr data-bag-id="${wbn.bag_id}">
                     <td><a href="${getBagIdLink(wbn.bag_id)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${wbn.bag_id}</a></td>
                     <td>${wbn.age_hours}</td>
@@ -1084,16 +1228,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td class="truncate" title="${wbn.client}">${wbn.client}</td>
                     <td>
                         <div class="status-btn-group" role="group">
-                            <button type="button" class="status-btn" data-status="Connected">Connected</button>
-                            <button type="button" class="status-btn" data-status="Not Connected">Not Connected</button>
+                            <button type="button" class="status-btn ${isConnected ? 'active-connected' : ''}" data-status="Connected">Connected</button>
+                            <button type="button" class="status-btn ${isNotConnected ? 'active-not-connected' : ''}" data-status="Not Connected">Not Connected</button>
                         </div>
-                        <div class="remarks-container"></div>
+                        <div class="remarks-container">
+                        ${isNotConnected ? `
+                             <textarea class="remarks-textarea" placeholder="Enter remarks...">${storedState.remarks || ''}</textarea>
+                             <div class="remarks-tags">
+                                 <span class="remark-tag">Ops Failure</span>
+                                 <span class="remark-tag">Missing</span>
+                                 <span class="remark-tag">Uncontrollable</span>
+                                 <span class="remark-tag">System Issue</span>
+                             </div>
+                        ` : ''}
+                        </div>
                     </td>
                 </tr>
-            `).join('')}
+            `}).join('')}
             </tbody>`;
+        
         detailsModalContent.innerHTML = '';
         detailsModalContent.appendChild(table);
+
+        // Re-attach listeners for textareas if any exist
+        detailsModalContent.querySelectorAll('.remarks-textarea').forEach(textarea => {
+            textarea.addEventListener('input', e => {
+                const bagId = e.target.closest('tr').dataset.bagId;
+                if(reviewDataStore[bagId]) {
+                    reviewDataStore[bagId].remarks = e.target.value;
+                }
+            });
+        });
     }
     
     // --- REPORTING FUNCTIONS ---
@@ -1243,8 +1408,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupReviewModalActions() {
         let buttonsHTML = `
-            <button id="mark-all-connected" class="primary-btn">Mark All Connected</button>
-            <button id="mark-all-not-connected" class="primary-btn bg-red-600">Mark All Not Connected</button>
+            <button id="mark-all-connected" class="secondary-action-btn">Mark All Connected</button>
+            <button id="mark-all-not-connected" class="secondary-action-btn">Mark All Not Connected</button>
             <div class="relative" id="bulk-search-menu">
                  <button id="bulkSearchBtn" class="primary-btn flex items-center gap-2">
                      <span>Bulk Search in HQ</span>
@@ -1266,10 +1431,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        const reviewedNTCs = Object.keys(reviewDataStore).map(bagId => {
-            const item = fullForecastData.find(d => d.bag_id === bagId);
-            return item ? item.ntc : null;
-        }).filter((value, index, self) => self.indexOf(value) === index && value !== null);
+        const reviewedNTCs = [...new Set(Object.values(reviewDataStore)
+            .map(review => fullForecastData.find(d => d.bag_id === Object.keys(reviewDataStore).find(key => reviewDataStore[key] === review)))
+            .filter(Boolean)
+            .map(item => item.ntc)
+        )].sort();
 
         let finalY = 20;
 
@@ -1291,7 +1457,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         return { ...itemData, ...review };
                     }
                     return null;
-                }).filter(Boolean);
+                }).filter(item => item && item.status); // Only include items that have been reviewed
             
             if (ntcData.length === 0) return;
 
@@ -1648,15 +1814,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                     ${b2cCount > 0 ? `B2C/H List (${b2cCount})` : 'B2C/H Clear'}
                                 </button>
                                 <div class="logic-details">
-                                    ${b2cCutoff ? `Cut-off: ${b2cCutoff}h` : (b2cCount === 0 ? `<span class="text-green-400">No Ageing! Great work.</span>` : '')}
+                                    ${b2cCutoff ? `Cut-off: ${b2cCutoff}h` : (b2cCount === 0 ? `<span class="text-green-400">No Ageing!</span>` : '')}
                                 </div>
                             </div>
                             <div>
                                 <button class="hotspot-action-btn ${b2bCount === 0 ? 'is-clear' : ''}" data-ntc="${ntc}" data-pdt="B2B" data-cutoff="${b2bCutoff}" ${b2bCount === 0 ? 'disabled' : ''}>
-                                     ${b2bCount > 0 ? `B2B List (${b2bCount})` : 'B2B Clear'}
+                                    ${b2bCount > 0 ? `B2B List (${b2bCount})` : 'B2B Clear'}
                                 </button>
                                 <div class="logic-details">
-                                     ${b2bCutoff ? `Cut-off: ${b2bCutoff}h` : (b2bCount === 0 ? `<span class="text-green-400">No Ageing! Good job.</span>` : '')}
+                                    ${b2bCutoff ? `Cut-off: ${b2bCutoff}h` : (b2bCount === 0 ? `<span class="text-green-400">No Ageing!</span>` : '')}
                                 </div>
                             </div>
                         </div>
@@ -1756,4 +1922,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
