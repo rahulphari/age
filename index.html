@@ -92,12 +92,12 @@
         }
         .hotspot-card-v2.severity-critical { animation: pulse-glow-critical 3s infinite ease-in-out; border-color: var(--glow-color-critical); }
         .hotspot-card-v2.severity-high { animation: pulse-glow-high 3.5s infinite ease-in-out; border-color: var(--glow-color-high); }
-        
+       
         .hotspot-header { text-align: center; }
         .hotspot-ntc { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 900; color: #f8fafc; line-height: 1.1; word-break: break-word; }
         .hotspot-total-count { font-size: 0.9rem; font-weight: 500; color: #94a3b8; }
         .hotspot-etd-display { font-size: 1rem; font-weight: 600; color: #facc15; }
-        
+       
         .card-alert {
             background-color: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.2);
             border-radius: 0.75rem; padding: 0.75rem 1rem; margin: 1rem 0; text-align: left;
@@ -124,7 +124,7 @@
             cursor: pointer; transition: color 0.2s;
         }
         .age-stat-value:hover { color: #60a5fa; }
-        
+       
         .hotspot-footer { position: relative; padding-top: 1rem; margin-top: auto; border-top: 1px solid #1e293b; }
         .hotspot-actions {
             display: flex; flex-direction: row; justify-content: space-around;
@@ -179,7 +179,7 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        
+       
         /* Per-card report button */
         .ntc-report-btn {
             position: absolute;
@@ -212,7 +212,7 @@
             padding: 1rem;
             font-family: monospace;
         }
-        
+       
         /* --- Global & Mode-Specific Alerts --- */
         .mode-alert {
             background-color: rgba(15, 23, 42, 0.6); border-left: 5px solid; padding: 1.25rem;
@@ -350,7 +350,7 @@
         .status-btn-group button:last-child { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
         .status-btn-group button.active-connected { background-color: #22c55e; border-color: #22c55e; color: white; }
         .status-btn-group button.active-not-connected { background-color: #ef4444; border-color: #ef4444; color: white; }
-        
+       
         .remarks-container { margin-top: 8px; }
         .remarks-textarea {
             width: 100%; background-color: #1e293b; border: 1px solid #334155;
@@ -362,7 +362,7 @@
             padding: 2px 8px; border-radius: 99px; cursor: pointer; transition: background-color 0.2s;
         }
         .remark-tag:hover { background-color: #475569; }
-        
+       
         .report-filter-group {
             display: flex;
             background-color: #0f172a;
@@ -550,7 +550,7 @@
                     </button>
                 </div>
             </div>
-            
+           
             <div id="critical-summary-container"></div>
 
             <div class="flex justify-between items-center gap-4 flex-wrap">
@@ -646,6 +646,20 @@
     </div>
 </div>
 
+<!-- Access Key Modal -->
+<div id="accessKeyModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center p-4">
+    <div class="modal-content bg-slate-900 p-6 rounded-lg shadow-2xl w-full max-w-md border border-slate-700 flex flex-col">
+        <h3 class="text-xl font-bold text-yellow-400 mb-2">Access Key Required</h3>
+        <p class="text-sm text-slate-400 mb-4">Access restriction has been enabled on generating text reports due to misinformed and improper usage. Please enter the access key to proceed.</p>
+        <input type="password" id="accessKeyInput" class="bg-slate-800 border border-slate-600 rounded-md p-2 w-full text-white focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter access key...">
+        <div id="accessKeyError" class="text-red-400 text-sm mt-2 h-5"></div>
+        <div class="flex justify-end gap-4 mt-4">
+            <button id="cancelAccessKey" class="secondary-action-btn" style="padding: 0.5rem 1rem;">Cancel</button>
+            <button id="submitAccessKey" class="primary-btn">Submit</button>
+        </div>
+    </div>
+</div>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -657,6 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let fileTimestamp = null;
     let currentMode = 'live'; // 'live' or 'review'
     let reviewDataStore = {}; // For review mode data
+    let accessKeySuccessCallback = null;
 
     // --- DOM ELEMENT SELECTORS ---
     const uploadView = document.getElementById('upload-view');
@@ -678,6 +693,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateReportBtn = document.getElementById('generate-report-btn');
     const generateLiveReportBtn = document.getElementById('generate-live-report-btn');
     const topRightActions = document.getElementById('top-right-actions');
+
+    // --- ACCESS KEY FUNCTIONALITY ---
+    function promptForAccessKey(onSuccess) {
+        accessKeySuccessCallback = onSuccess;
+        const modal = document.getElementById('accessKeyModal');
+        const input = document.getElementById('accessKeyInput');
+        const errorEl = document.getElementById('accessKeyError');
+        
+        input.value = '';
+        errorEl.textContent = '';
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        input.focus();
+    }
+
+    function closeAccessKeyModal() {
+        const modal = document.getElementById('accessKeyModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        accessKeySuccessCallback = null; // Clear the callback
+    }
+    
+    document.getElementById('submitAccessKey').addEventListener('click', () => {
+        const accessKey = 'HBL';
+        const input = document.getElementById('accessKeyInput');
+        const errorEl = document.getElementById('accessKeyError');
+        
+        if (input.value === accessKey) {
+            if (accessKeySuccessCallback && typeof accessKeySuccessCallback === 'function') {
+                accessKeySuccessCallback();
+            }
+            closeAccessKeyModal();
+        } else {
+            errorEl.textContent = 'Incorrect key. Please request access.';
+            input.value = '';
+            input.focus();
+        }
+    });
+
+    document.getElementById('cancelAccessKey').addEventListener('click', closeAccessKeyModal);
+    document.getElementById('accessKeyModal').addEventListener('click', (e) => {
+        if (e.target.id === 'accessKeyModal') {
+            closeAccessKeyModal();
+        }
+    });
+
 
     // --- INITIAL SETUP & EVENT LISTENERS ---
 
@@ -722,7 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- REFACTORED EVENT LISTENERS ---
-    
+   
     liveModeView.addEventListener('click', e => {
         const ageValue = e.target.closest('.age-stat-value');
         if (ageValue) {
@@ -746,17 +807,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const filteredData = getCurrentlyVisibleData().filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
             openDetailsModal(`Recommended Ageing List for ${ntc} (${pdt})`, filteredData, true);
         }
-        
-        if (e.target.id === 'generate-live-report-btn' && !e.target.disabled) {
-            generateLiveReport();
+       
+        const generateBtn = e.target.closest('#generate-live-report-btn');
+        if (generateBtn && !generateBtn.disabled) {
+            promptForAccessKey(generateLiveReport);
         }
-        
+       
         const ntcReportBtn = e.target.closest('.ntc-report-btn');
         if (ntcReportBtn) {
             const { ntc } = ntcReportBtn.dataset;
-            generateNTCReport(ntc);
+            promptForAccessKey(() => generateNTCReport(ntc));
         }
-        
+       
         const summaryViewTarget = e.target.closest('.critical-summary-panel .clickable-count');
         if (summaryViewTarget) {
             const { ntc, pdt } = summaryViewTarget.dataset;
@@ -767,7 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             openDetailsModal(`Critically Aged (>48h) for ${ntc} - ${pdtLabel}`, filtered, false);
         }
-        
+       
         const toggleBtn = e.target.closest('#toggle-critical-summary');
         if (toggleBtn) {
             const wrapper = document.getElementById('critical-list-wrapper');
@@ -803,12 +865,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const allBagIds = [...b2cList, ...b2bList];
 
             const dataToReview = fullForecastData.filter(r => allBagIds.includes(r.bag_id));
-            
+           
             const modalTitle = `Reviewing Ageing List for ${ntc}`;
             openDetailsModal(modalTitle, dataToReview, false);
         }
     });
-    
+   
     detailsModal.addEventListener('click', e => {
         if (e.target === detailsModal) closeAllModals();
 
@@ -863,13 +925,13 @@ document.addEventListener('DOMContentLoaded', () => {
             default:
                 return;
         }
-        
+       
         const groupedByNTC = data.reduce((acc, item) => {
             if (!acc[item.ntc]) acc[item.ntc] = [];
             acc[item.ntc].push(item.bag_id);
             return acc;
         }, {});
-        
+       
         const reportData = Object.keys(groupedByNTC).sort().map(ntc => ({
             ntc,
             list: groupedByNTC[ntc]
@@ -935,7 +997,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showMessage(`An error occurred: ${error.message}`, true);
         }
     }
-    
+   
     function analyzeAndEnrichData(data, baseTime) {
         const now = new Date(baseTime);
         return data
@@ -972,7 +1034,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .filter(Boolean);
     }
-    
+   
     // --- LIVE MODE FUNCTIONS ---
     function setupLiveModeDashboard() {
         uploadView.classList.add('hidden');
@@ -992,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (relevantShipments.length === 0) return { cutoff: null, nextETD: null };
         const nextETD = new Date(Math.min(...relevantShipments.map(r => new Date(r.etd.replace(' ', 'T')))));
         const timeUntilNextETD_hours = (nextETD - now) / (1000 * 60 * 60);
-        
+       
         const isNormalMode = forceNormal || document.getElementById('mode-normal').classList.contains('active');
         const slaHours = isNormalMode ? 27 : 24;
         const cutoffForSLA = slaHours - timeUntilNextETD_hours;
@@ -1019,11 +1081,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p class="alert-message">File is older than 30 minutes. Time is frozen to <b>${fileTimestamp.toLocaleString()}</b>. Data excludes PST and Not Put shipments. All lists are based on Normal Mode (27h SLA).</p>
                 </div>
             </div>`;
-        
+       
         // **LOGIC CORRECTION**: Ensure review mode uses the same default filters as live mode.
         const dataToReview = fullForecastData.filter(r => r.putaway_category !== 'pst' && r.putaway_category !== 'put_pending');
         const summary = getSummaryData(dataToReview);
-        
+       
         summary.sort((a, b) => {
             if (a.data.soonestETD === null && b.data.soonestETD === null) return 0;
             if (a.data.soonestETD === null) return 1;
@@ -1046,7 +1108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (totalInReview === 0) return ''; // Don't render a card if there's nothing to review
 
                 const reviewData = { b2c: b2cList, b2b: b2bList };
-                
+               
                 return `
                     <div class="review-card" id="review-card-${ntc}" data-ntc="${ntc}" data-total-review-items="${totalInReview}">
                         <div class="review-card-header">
@@ -1093,7 +1155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const newStatus = button.dataset.status;
 
         group.querySelectorAll('button').forEach(btn => btn.classList.remove('active-connected', 'active-not-connected'));
-        
+       
         if (newStatus === 'Connected') {
             button.classList.add('active-connected');
             remarksContainer.innerHTML = ''; // Clear remarks area
@@ -1114,11 +1176,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 reviewDataStore[bagId].remarks = e.target.value;
             });
         }
-        
+       
         const ntc = modalCurrentData[0]?.ntc;
         if(ntc) updateReviewCardProgress(ntc);
     }
-    
+   
     function updateReviewCardProgress(ntc) {
         const card = document.getElementById(`review-card-${ntc}`);
         if (!card) return;
@@ -1128,9 +1190,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const allBagIds = [...reviewData.b2c, ...reviewData.b2b];
 
         const reviewedCount = allBagIds.filter(bagId => reviewDataStore[bagId]?.status).length;
-        
+       
         const progressPercent = totalItems > 0 ? (reviewedCount / totalItems) * 100 : 0;
-        
+       
         document.getElementById(`progress-bar-${ntc}`).style.width = `${progressPercent}%`;
         document.getElementById(`progress-text-${ntc}`).textContent = `${reviewedCount} / ${totalItems}`;
 
@@ -1138,13 +1200,13 @@ document.addEventListener('DOMContentLoaded', () => {
             card.classList.add('is-complete');
             card.querySelector('.review-action-btn').textContent = 'Review Complete';
         }
-        
+       
         // Check if all reviews are complete to enable the report button
         const allCards = document.querySelectorAll('.review-card');
         const allComplete = [...allCards].every(c => c.classList.contains('is-complete'));
         generateReportBtn.disabled = !allComplete;
     }
-    
+   
     // --- MODAL & DYNAMIC CONTENT FUNCTIONS ---
     function openDetailsModal(title, data, isSuggestion, viewType = 'default') {
         modalCurrentData = data;
@@ -1170,13 +1232,15 @@ document.addEventListener('DOMContentLoaded', () => {
         switch(actionId) {
             case 'closeDetailsModal': closeAllModals(); break;
             case 'copyReportBtn': 
-                const reportText = document.getElementById('report-textarea').value;
-                const btn = document.getElementById('copyReportBtn');
-                navigator.clipboard.writeText(reportText).then(() => {
-                    const originalText = btn.textContent;
-                    btn.textContent = 'Copied!';
-                    setTimeout(() => { btn.textContent = originalText; }, 2000);
-                }).catch(err => console.error('Failed to copy report:', err));
+                promptForAccessKey(() => {
+                    const reportText = document.getElementById('report-textarea').value;
+                    const btn = document.getElementById('copyReportBtn');
+                    navigator.clipboard.writeText(reportText).then(() => {
+                        const originalText = btn.textContent;
+                        btn.textContent = 'Copied!';
+                        setTimeout(() => { btn.textContent = originalText; }, 2000);
+                    }).catch(err => console.error('Failed to copy report:', err));
+                });
                 break;
             case 'recommendPickSpacesBtn': showPickSpaces(); break;
             case 'backToDetailsBtn': renderTable(modalCurrentData, null, true); break;
@@ -1195,7 +1259,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
         }
     }
-    
+   
     function renderReviewTable(data) {
         setupReviewModalActions();
         if (data.length === 0) {
@@ -1233,20 +1297,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div class="remarks-container">
                         ${isNotConnected ? `
-                             <textarea class="remarks-textarea" placeholder="Enter remarks...">${storedState.remarks || ''}</textarea>
-                             <div class="remarks-tags">
-                                 <span class="remark-tag">Ops Failure</span>
-                                 <span class="remark-tag">Missing</span>
-                                 <span class="remark-tag">Uncontrollable</span>
-                                 <span class="remark-tag">System Issue</span>
-                             </div>
+                           <textarea class="remarks-textarea" placeholder="Enter remarks...">${storedState.remarks || ''}</textarea>
+                           <div class="remarks-tags">
+                               <span class="remark-tag">Ops Failure</span>
+                               <span class="remark-tag">Missing</span>
+                               <span class="remark-tag">Uncontrollable</span>
+                               <span class="remark-tag">System Issue</span>
+                           </div>
                         ` : ''}
                         </div>
                     </td>
                 </tr>
             `}).join('')}
             </tbody>`;
-        
+       
         detailsModalContent.innerHTML = '';
         detailsModalContent.appendChild(table);
 
@@ -1260,7 +1324,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-    
+   
     // --- REPORTING FUNCTIONS ---
     function generateNTCReport(ntc) {
         const dataToUse = getCurrentlyVisibleData();
@@ -1271,7 +1335,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { b2c_heavy_recommendation, b2b_recommendation } = ntcItem;
         const b2cCutoff = b2c_heavy_recommendation.cutoff;
         const b2bCutoff = b2b_recommendation.cutoff;
-        
+       
         let b2cList = [];
         if (b2cCutoff) {
             b2cList = dataToUse
@@ -1285,11 +1349,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 .filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff))
                 .map(item => item.bag_id);
         }
-        
+       
         const reportDataForNTC = [{ ntc, b2cList, b2bList }];
         openDetailsModal(`Live Ageing Report for ${ntc}`, reportDataForNTC, false, 'ntc-report');
     }
-        
+         
     function generateLiveReport() {
         const dataToUse = getCurrentlyVisibleData();
         const summaryData = getSummaryData(dataToUse);
@@ -1302,10 +1366,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const reportData = summaryData.map(ntcItem => {
             const { ntc, b2c_heavy_recommendation, b2b_recommendation } = ntcItem;
-            
+           
             const b2cCutoff = b2c_heavy_recommendation.cutoff;
             const b2bCutoff = b2b_recommendation.cutoff;
-            
+           
             let b2cList = [];
             if (b2cCutoff) {
                 b2cList = dataToUse
@@ -1319,16 +1383,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     .filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff))
                     .map(item => item.bag_id);
             }
-            
+           
             if (b2cList.length > 0 || b2bList.length > 0) {
                  return { ntc, b2cList, b2bList };
             }
             return null;
         }).filter(Boolean);
-        
+       
         openDetailsModal("Live Ageing Report", reportData, false);
     }
-    
+   
     function formatReportText(reportData, filter) {
         const reportParts = [];
         reportData.forEach(ntcItem => {
@@ -1347,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ntcBlockParts.push(...b2bList);
                 hasContent = true;
             }
-            
+           
             if (hasContent) {
                 reportParts.push(ntcBlockParts.join("\n"));
             }
@@ -1391,7 +1455,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const updateReportView = (filter) => {
             reportTextarea.value = formatReportText(reportData, filter);
         };
-        
+       
         filterGroup.addEventListener('click', e => {
             const btn = e.target.closest('.report-filter-btn');
             if (btn) {
@@ -1426,7 +1490,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         modalActions.innerHTML = buttonsHTML;
     }
-    
+   
     function generatePDFReport() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
@@ -1458,7 +1522,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return null;
                 }).filter(item => item && item.status); // Only include items that have been reviewed
-            
+           
             if (ntcData.length === 0) return;
 
             doc.setFontSize(14);
@@ -1478,7 +1542,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ];
                 tableRows.push(rowData);
             });
-            
+           
             doc.autoTable({
                 head: [tableColumn],
                 body: tableRows,
@@ -1509,9 +1573,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return results;
     }
-    
+   
     // --- SHARED & REFACTORED FUNCTIONS ---
-    
+   
     function getCurrentlyVisibleData() {
         if (!fullForecastData) return [];
         let data = fullForecastData;
@@ -1605,7 +1669,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detailsModalContent.innerHTML = '';
         detailsModalContent.appendChild(table);
     }
-    
+   
     function updateBulkSearchLinks(data) {
         const bags = [];
         const shipments = [];
@@ -1671,7 +1735,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLogModal.classList.remove('flex');
         modalCurrentData = [];
     }
-    
+   
     function copyPickLocations(button) {
         const locations = [...detailsModalContent.querySelectorAll('span')].map(span => span.textContent.trim());
         if (locations.length > 0) {
@@ -1693,7 +1757,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSummaryPanel() {
         // This entire function is part of LIVE MODE
         if (!fullForecastData) return;
-        
+       
         const dataToUse = getCurrentlyVisibleData();
         const summaryPanel = document.getElementById('summary-panel');
         generateLiveReportBtn.disabled = dataToUse.length === 0;
@@ -1706,14 +1770,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const showUrgentOnly = document.getElementById('show-urgent-toggle').checked;
         let summaryData = getSummaryData(dataToUse);
-        
+       
         renderCriticalSummary();
 
         if (showUrgentOnly) {
             const fiveHoursFromNow = new Date().getTime() + (5 * 60 * 60 * 1000);
             summaryData = summaryData.filter(item => item.data.soonestETD && item.data.soonestETD.getTime() < fiveHoursFromNow);
         }
-        
+       
         summaryData.sort((a, b) => {
             const aETD = a.data.soonestETD;
             const bETD = b.data.soonestETD;
@@ -1725,7 +1789,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return b.severityScore - a.severityScore;
         });
-        
+       
         if (summaryData.length === 0) {
             summaryPanel.innerHTML = `<p class="text-slate-400 text-center col-span-full">No NTCs match the current "Urgent Only" view.</p>`;
             return;
@@ -1737,10 +1801,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 count: (data.b2c_heavy[bucket] || 0) + (data.b2b[bucket] || 0)
             }));
             const etdString = data.soonestETD ? `ETD in ${getCountdownString(data.soonestETD)}` : 'No Upcoming ETD';
-            
+           
             const b2cCutoff = b2c_heavy_recommendation.cutoff;
             const b2bCutoff = b2b_recommendation.cutoff;
-            
+           
             let alertHTML = '';
             let b2cCount = 0;
             if (b2cCutoff) {
@@ -1796,7 +1860,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="stat-label">Max Age</div>
                         </div>
                     </div>
-                    
+                   
                     ${alertHTML}
 
                     <div class="age-stats-container">
@@ -1806,7 +1870,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="age-stat-value" data-ntc="${ntc}" data-bucket="${age.label}">${age.count}</span>
                             </div>`).join('')}
                     </div>
-                    
+                   
                     <div class="hotspot-footer">
                         <div class="hotspot-actions">
                              <div>
@@ -1830,12 +1894,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }).join('');
     }
-    
+   
     function renderCriticalSummary() {
         // This function is for LIVE MODE
         const container = document.getElementById('critical-summary-container');
         const dataToUse = getCurrentlyVisibleData();
-        
+       
         const criticalShipments = dataToUse.filter(r => r.age_hours >= 48);
 
         if (criticalShipments.length === 0) {
@@ -1860,7 +1924,7 @@ document.addEventListener('DOMContentLoaded', () => {
             acc[row.ntc][pdtGroup]++;
             return acc;
         }, {});
-        
+       
         const summaryList = Object.entries(summary).map(([ntc, counts]) => ({
             ntc,
             b2bCount: counts.b2b,
@@ -1881,7 +1945,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             </tr>
         `).join('');
-        
+       
         const rowCount = summaryList.length;
         const isCollapsible = rowCount > 5;
 
@@ -1922,3 +1986,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
