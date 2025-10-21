@@ -34,6 +34,12 @@
             animation: grid-pan 80s linear infinite;
         }
 
+        /* --- Lite Mode: Performance Optimization --- */
+        .lite-mode-active * {
+            transition: none !important;
+            animation: none !important;
+        }
+
         /* --- Animations & Transitions --- */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -92,12 +98,12 @@
         }
         .hotspot-card-v2.severity-critical { animation: pulse-glow-critical 3s infinite ease-in-out; border-color: var(--glow-color-critical); }
         .hotspot-card-v2.severity-high { animation: pulse-glow-high 3.5s infinite ease-in-out; border-color: var(--glow-color-high); }
-       
+        
         .hotspot-header { text-align: center; }
         .hotspot-ntc { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 900; color: #f8fafc; line-height: 1.1; word-break: break-word; }
         .hotspot-total-count { font-size: 0.9rem; font-weight: 500; color: #94a3b8; }
         .hotspot-etd-display { font-size: 1rem; font-weight: 600; color: #facc15; }
-       
+        
         .card-alert {
             background-color: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.2);
             border-radius: 0.75rem; padding: 0.75rem 1rem; margin: 1rem 0; text-align: left;
@@ -124,7 +130,7 @@
             cursor: pointer; transition: color 0.2s;
         }
         .age-stat-value:hover { color: #60a5fa; }
-       
+        
         .hotspot-footer { position: relative; padding-top: 1rem; margin-top: auto; border-top: 1px solid #1e293b; }
         .hotspot-actions {
             display: flex; flex-direction: row; justify-content: space-around;
@@ -179,7 +185,7 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-       
+        
         /* Per-card report button */
         .ntc-report-btn {
             position: absolute;
@@ -198,6 +204,23 @@
             transform: scale(1.1);
         }
 
+        /* --- Lite Mode Button --- */
+        .lite-mode-btn {
+            background-color: #334155;
+            color: #e2e8f0;
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: 1px solid #475569;
+        }
+        .lite-mode-btn.active {
+            background-color: #16a34a; /* green-600 */
+            color: white;
+            border-color: #22c55e;
+        }
+
         /* --- Modal & Table Styles --- */
         .modal-content { animation: fadeInUp 0.3s ease-out forwards; }
         .data-table { width: 100%; border-collapse: collapse; }
@@ -212,7 +235,7 @@
             padding: 1rem;
             font-family: monospace;
         }
-       
+        
         /* --- Global & Mode-Specific Alerts --- */
         .mode-alert {
             background-color: rgba(15, 23, 42, 0.6); border-left: 5px solid; padding: 1.25rem;
@@ -350,7 +373,7 @@
         .status-btn-group button:last-child { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
         .status-btn-group button.active-connected { background-color: #22c55e; border-color: #22c55e; color: white; }
         .status-btn-group button.active-not-connected { background-color: #ef4444; border-color: #ef4444; color: white; }
-       
+        
         .remarks-container { margin-top: 8px; }
         .remarks-textarea {
             width: 100%; background-color: #1e293b; border: 1px solid #334155;
@@ -362,7 +385,7 @@
             padding: 2px 8px; border-radius: 99px; cursor: pointer; transition: background-color 0.2s;
         }
         .remark-tag:hover { background-color: #475569; }
-       
+        
         .report-filter-group {
             display: flex;
             background-color: #0f172a;
@@ -516,12 +539,14 @@
 
 <div class="main-container">
     <header class="text-center mb-12 flex justify-between items-center">
-        <div></div> <!-- Spacer -->
+        <div id="top-left-actions" class="flex-1 text-left">
+            <button id="lite-mode-toggle" class="lite-mode-btn">Lite Mode</button>
+        </div>
         <div class="flex-grow">
             <h1 class="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-green-400 to-yellow-400">AGE-SIGHT</h1>
             <p class="mt-2 text-2xl text-slate-400 font-light tracking-widest">MISSION CONTROL</p>
         </div>
-        <div id="top-right-actions" class="flex flex-col gap-2 items-end"></div>
+        <div id="top-right-actions" class="flex-1 flex flex-col gap-2 items-end"></div>
     </header>
 
     <div id="app-content">
@@ -550,7 +575,7 @@
                     </button>
                 </div>
             </div>
-           
+            
             <div id="critical-summary-container"></div>
 
             <div class="flex justify-between items-center gap-4 flex-wrap">
@@ -593,7 +618,7 @@
     </div>
 
     <footer class="text-center text-slate-500 mt-12 border-t border-slate-800 pt-6">
-        AGE-SIGHT v2.7 | Designed by Rh. for ⚡ Team Sonic - Hubli | <span id="update-log-link" class="update-log-link">View Updates</span>
+        AGE-SIGHT v2.8 | Designed by Rh. for ⚡ Team Sonic - Hubli | <span id="update-log-link" class="update-log-link">View Updates</span>
     </footer>
 </div>
 
@@ -618,7 +643,11 @@
         <div class="update-log-content scrollable-pane pr-2 text-slate-300" style="max-height: 70vh; overflow-y: auto;">
             <ul>
                 <li>
-                    <strong>v2.7 (Latest)</strong>
+                    <strong>v2.8 (Latest)</strong>
+                    <p class="text-sm text-slate-400">Added "Lite Mode" toggle to disable animations for performance. All data lists are now sorted by descending age (oldest first). Review Mode now separates B2B and B2C/Heavy items into distinct tables for clearer analysis.</p>
+                </li>
+                <li>
+                    <strong>v2.7</strong>
                     <p class="text-sm text-slate-400">Major aesthetic and functional overhaul for Review Mode. Replaced the plain table with interactive cards featuring progress tracking. Ensured data filtering logic (PST/Client exceptions) is now consistent between Live and Review modes.</p>
                 </li>
                 <li>
@@ -693,6 +722,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateReportBtn = document.getElementById('generate-report-btn');
     const generateLiveReportBtn = document.getElementById('generate-live-report-btn');
     const topRightActions = document.getElementById('top-right-actions');
+    const liteModeToggle = document.getElementById('lite-mode-toggle');
+
+    // --- LITE MODE FUNCTIONALITY ---
+    function applyLiteModePreference() {
+        const isLiteMode = localStorage.getItem('ageSightLiteMode') === 'true';
+        if (isLiteMode) {
+            document.body.classList.add('lite-mode-active');
+            liteModeToggle.classList.add('active');
+            liteModeToggle.textContent = 'Lite Mode: ON';
+        } else {
+            document.body.classList.remove('lite-mode-active');
+            liteModeToggle.classList.remove('active');
+            liteModeToggle.textContent = 'Lite Mode';
+        }
+    }
+
+    liteModeToggle.addEventListener('click', () => {
+        const isCurrentlyLite = document.body.classList.contains('lite-mode-active');
+        localStorage.setItem('ageSightLiteMode', !isCurrentlyLite);
+        applyLiteModePreference();
+    });
+
+    applyLiteModePreference(); // Apply on initial load
 
     // --- ACCESS KEY FUNCTIONALITY ---
     function promptForAccessKey(onSuccess) {
@@ -716,7 +768,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     document.getElementById('submitAccessKey').addEventListener('click', () => {
-        const accessKey = 'HBL';
+        const accessKey = atob('SEJM'); // 'HBL' in Base64
         const input = document.getElementById('accessKeyInput');
         const errorEl = document.getElementById('accessKeyError');
         
@@ -783,12 +835,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- REFACTORED EVENT LISTENERS ---
-   
+    
     liveModeView.addEventListener('click', e => {
         const ageValue = e.target.closest('.age-stat-value');
         if (ageValue) {
             const { ntc, bucket } = ageValue.dataset;
-            const filtered = getCurrentlyVisibleData().filter(r => r.ntc === ntc && r.age_bucket === bucket);
+            let filtered = getCurrentlyVisibleData().filter(r => r.ntc === ntc && r.age_bucket === bucket);
+            filtered.sort((a, b) => b.age_hours - a.age_hours); // Sort oldest first
             openDetailsModal(`Details for ${ntc} > ${bucket}`, filtered, false);
         }
 
@@ -796,7 +849,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cutoffBtn && !cutoffBtn.disabled) {
             const { ntc, pdt, cutoff } = cutoffBtn.dataset;
             if (!cutoff || cutoff === 'null') return; 
-            const filteredData = getCurrentlyVisibleData().filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
+            let filteredData = getCurrentlyVisibleData().filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
+            filteredData.sort((a, b) => b.age_hours - a.age_hours); // Sort oldest first
             openDetailsModal(`Recommended Ageing List for ${ntc} (${pdt})`, filteredData, true);
         }
 
@@ -804,32 +858,34 @@ document.addEventListener('DOMContentLoaded', () => {
         if (clickableCount) {
             const { ntc, pdt, cutoff } = clickableCount.dataset;
             if (!cutoff || cutoff === 'null') return;
-            const filteredData = getCurrentlyVisibleData().filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
+            let filteredData = getCurrentlyVisibleData().filter(r => r.ntc === ntc && pdt.split(',').includes(r.pdt) && r.age_hours >= parseFloat(cutoff));
+            filteredData.sort((a, b) => b.age_hours - a.age_hours); // Sort oldest first
             openDetailsModal(`Recommended Ageing List for ${ntc} (${pdt})`, filteredData, true);
         }
-       
+        
         const generateBtn = e.target.closest('#generate-live-report-btn');
         if (generateBtn && !generateBtn.disabled) {
             promptForAccessKey(generateLiveReport);
         }
-       
+        
         const ntcReportBtn = e.target.closest('.ntc-report-btn');
         if (ntcReportBtn) {
             const { ntc } = ntcReportBtn.dataset;
             promptForAccessKey(() => generateNTCReport(ntc));
         }
-       
+        
         const summaryViewTarget = e.target.closest('.critical-summary-panel .clickable-count');
         if (summaryViewTarget) {
             const { ntc, pdt } = summaryViewTarget.dataset;
             const pdtLabel = pdt === 'b2c_heavy' ? 'B2C/Heavy' : 'B2B';
-            const filtered = getCurrentlyVisibleData().filter(r => {
+            let filtered = getCurrentlyVisibleData().filter(r => {
                 const pdtGroup = (r.pdt === 'B2B') ? 'b2b' : 'b2c_heavy';
                 return r.ntc === ntc && pdtGroup === pdt && r.age_hours >= 48;
             });
+            filtered.sort((a, b) => b.age_hours - a.age_hours); // Sort oldest first
             openDetailsModal(`Critically Aged (>48h) for ${ntc} - ${pdtLabel}`, filtered, false);
         }
-       
+        
         const toggleBtn = e.target.closest('#toggle-critical-summary');
         if (toggleBtn) {
             const wrapper = document.getElementById('critical-list-wrapper');
@@ -864,13 +920,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const b2bList = reviewData.b2b;
             const allBagIds = [...b2cList, ...b2bList];
 
-            const dataToReview = fullForecastData.filter(r => allBagIds.includes(r.bag_id));
-           
+            let dataToReview = fullForecastData.filter(r => allBagIds.includes(r.bag_id));
+            dataToReview.sort((a, b) => b.age_hours - a.age_hours); // Sort oldest first
+            
             const modalTitle = `Reviewing Ageing List for ${ntc}`;
             openDetailsModal(modalTitle, dataToReview, false);
         }
     });
-   
+    
     detailsModal.addEventListener('click', e => {
         if (e.target === detailsModal) closeAllModals();
 
@@ -925,13 +982,15 @@ document.addEventListener('DOMContentLoaded', () => {
             default:
                 return;
         }
-       
+        
+        data.sort((a, b) => b.age_hours - a.age_hours); // Sort oldest first
+
         const groupedByNTC = data.reduce((acc, item) => {
             if (!acc[item.ntc]) acc[item.ntc] = [];
             acc[item.ntc].push(item.bag_id);
             return acc;
         }, {});
-       
+        
         const reportData = Object.keys(groupedByNTC).sort().map(ntc => ({
             ntc,
             list: groupedByNTC[ntc]
@@ -997,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showMessage(`An error occurred: ${error.message}`, true);
         }
     }
-   
+    
     function analyzeAndEnrichData(data, baseTime) {
         const now = new Date(baseTime);
         return data
@@ -1034,7 +1093,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .filter(Boolean);
     }
-   
+    
     // --- LIVE MODE FUNCTIONS ---
     function setupLiveModeDashboard() {
         uploadView.classList.add('hidden');
@@ -1054,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (relevantShipments.length === 0) return { cutoff: null, nextETD: null };
         const nextETD = new Date(Math.min(...relevantShipments.map(r => new Date(r.etd.replace(' ', 'T')))));
         const timeUntilNextETD_hours = (nextETD - now) / (1000 * 60 * 60);
-       
+        
         const isNormalMode = forceNormal || document.getElementById('mode-normal').classList.contains('active');
         const slaHours = isNormalMode ? 27 : 24;
         const cutoffForSLA = slaHours - timeUntilNextETD_hours;
@@ -1081,11 +1140,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p class="alert-message">File is older than 30 minutes. Time is frozen to <b>${fileTimestamp.toLocaleString()}</b>. Data excludes PST and Not Put shipments. All lists are based on Normal Mode (27h SLA).</p>
                 </div>
             </div>`;
-       
+        
         // **LOGIC CORRECTION**: Ensure review mode uses the same default filters as live mode.
         const dataToReview = fullForecastData.filter(r => r.putaway_category !== 'pst' && r.putaway_category !== 'put_pending');
         const summary = getSummaryData(dataToReview);
-       
+        
         summary.sort((a, b) => {
             if (a.data.soonestETD === null && b.data.soonestETD === null) return 0;
             if (a.data.soonestETD === null) return 1;
@@ -1108,7 +1167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (totalInReview === 0) return ''; // Don't render a card if there's nothing to review
 
                 const reviewData = { b2c: b2cList, b2b: b2bList };
-               
+                
                 return `
                     <div class="review-card" id="review-card-${ntc}" data-ntc="${ntc}" data-total-review-items="${totalInReview}">
                         <div class="review-card-header">
@@ -1155,7 +1214,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const newStatus = button.dataset.status;
 
         group.querySelectorAll('button').forEach(btn => btn.classList.remove('active-connected', 'active-not-connected'));
-       
+        
         if (newStatus === 'Connected') {
             button.classList.add('active-connected');
             remarksContainer.innerHTML = ''; // Clear remarks area
@@ -1176,11 +1235,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 reviewDataStore[bagId].remarks = e.target.value;
             });
         }
-       
+        
         const ntc = modalCurrentData[0]?.ntc;
         if(ntc) updateReviewCardProgress(ntc);
     }
-   
+    
     function updateReviewCardProgress(ntc) {
         const card = document.getElementById(`review-card-${ntc}`);
         if (!card) return;
@@ -1190,9 +1249,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const allBagIds = [...reviewData.b2c, ...reviewData.b2b];
 
         const reviewedCount = allBagIds.filter(bagId => reviewDataStore[bagId]?.status).length;
-       
+        
         const progressPercent = totalItems > 0 ? (reviewedCount / totalItems) * 100 : 0;
-       
+        
         document.getElementById(`progress-bar-${ntc}`).style.width = `${progressPercent}%`;
         document.getElementById(`progress-text-${ntc}`).textContent = `${reviewedCount} / ${totalItems}`;
 
@@ -1200,13 +1259,13 @@ document.addEventListener('DOMContentLoaded', () => {
             card.classList.add('is-complete');
             card.querySelector('.review-action-btn').textContent = 'Review Complete';
         }
-       
+        
         // Check if all reviews are complete to enable the report button
         const allCards = document.querySelectorAll('.review-card');
         const allComplete = [...allCards].every(c => c.classList.contains('is-complete'));
         generateReportBtn.disabled = !allComplete;
     }
-   
+    
     // --- MODAL & DYNAMIC CONTENT FUNCTIONS ---
     function openDetailsModal(title, data, isSuggestion, viewType = 'default') {
         modalCurrentData = data;
@@ -1221,7 +1280,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateBulkSearchLinks(data);
             }
         } else { // Review Mode
-            renderReviewTable(data);
+            renderGroupedReviewTables(data);
             updateBulkSearchLinks(data);
         }
         detailsModal.classList.remove('hidden');
@@ -1259,62 +1318,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
         }
     }
-   
-    function renderReviewTable(data) {
+    
+    function renderGroupedReviewTables(data) {
         setupReviewModalActions();
         if (data.length === 0) {
             detailsModalContent.innerHTML = `<p class="text-slate-400 p-8 text-center">No shipments match.</p>`;
             return;
         }
 
-        data.forEach(item => {
-            if (!reviewDataStore[item.bag_id]) {
-                reviewDataStore[item.bag_id] = { status: null, remarks: '' };
-            }
-        });
+        const b2cData = data.filter(item => item.pdt !== 'B2B');
+        const b2bData = data.filter(item => item.pdt === 'B2B');
+        
+        let finalHTML = '';
 
-        const table = document.createElement('table');
-        table.className = 'data-table';
-        table.innerHTML = `
-            <thead><tr>
-                <th>Bag ID</th><th>Age (Hrs)</th><th>NTC</th><th>Client</th><th>Status & Remarks</th>
-            </tr></thead>
-            <tbody>
-            ${data.map(wbn => {
-                const storedState = reviewDataStore[wbn.bag_id] || {};
-                const isConnected = storedState.status === 'Connected';
-                const isNotConnected = storedState.status === 'Not Connected';
-                return `
-                <tr data-bag-id="${wbn.bag_id}">
-                    <td><a href="${getBagIdLink(wbn.bag_id)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${wbn.bag_id}</a></td>
-                    <td>${wbn.age_hours}</td>
-                    <td>${wbn.ntc}</td>
-                    <td class="truncate" title="${wbn.client}">${wbn.client}</td>
-                    <td>
-                        <div class="status-btn-group" role="group">
-                            <button type="button" class="status-btn ${isConnected ? 'active-connected' : ''}" data-status="Connected">Connected</button>
-                            <button type="button" class="status-btn ${isNotConnected ? 'active-not-connected' : ''}" data-status="Not Connected">Not Connected</button>
-                        </div>
-                        <div class="remarks-container">
-                        ${isNotConnected ? `
-                           <textarea class="remarks-textarea" placeholder="Enter remarks...">${storedState.remarks || ''}</textarea>
-                           <div class="remarks-tags">
-                               <span class="remark-tag">Ops Failure</span>
-                               <span class="remark-tag">Missing</span>
-                               <span class="remark-tag">Uncontrollable</span>
-                               <span class="remark-tag">System Issue</span>
-                           </div>
-                        ` : ''}
-                        </div>
-                    </td>
-                </tr>
-            `}).join('')}
-            </tbody>`;
-       
-        detailsModalContent.innerHTML = '';
-        detailsModalContent.appendChild(table);
+        if (b2cData.length > 0) {
+            finalHTML += `<h4 class="text-xl font-bold text-blue-300 mb-2 mt-4">B2C / Heavy List (${b2cData.length})</h4>`;
+            finalHTML += generateReviewTableHTML(b2cData);
+        }
 
-        // Re-attach listeners for textareas if any exist
+        if (b2bData.length > 0) {
+            finalHTML += `<h4 class="text-xl font-bold text-yellow-300 mb-2 mt-6">B2B List (${b2bData.length})</h4>`;
+            finalHTML += generateReviewTableHTML(b2bData);
+        }
+        
+        detailsModalContent.innerHTML = finalHTML;
+
+        // Re-attach listeners for textareas
         detailsModalContent.querySelectorAll('.remarks-textarea').forEach(textarea => {
             textarea.addEventListener('input', e => {
                 const bagId = e.target.closest('tr').dataset.bagId;
@@ -1324,7 +1353,54 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-   
+
+    function generateReviewTableHTML(data) {
+        data.forEach(item => {
+            if (!reviewDataStore[item.bag_id]) {
+                reviewDataStore[item.bag_id] = { status: null, remarks: '' };
+            }
+        });
+
+        return `
+            <table class="data-table">
+                <thead><tr>
+                    <th>Bag ID</th><th>Age (Hrs)</th><th>NTC</th><th>Client</th><th>Status & Remarks</th>
+                </tr></thead>
+                <tbody>
+                ${data.map(wbn => {
+                    const storedState = reviewDataStore[wbn.bag_id] || {};
+                    const isConnected = storedState.status === 'Connected';
+                    const isNotConnected = storedState.status === 'Not Connected';
+                    return `
+                    <tr data-bag-id="${wbn.bag_id}">
+                        <td><a href="${getBagIdLink(wbn.bag_id)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${wbn.bag_id}</a></td>
+                        <td>${wbn.age_hours}</td>
+                        <td>${wbn.ntc}</td>
+                        <td class="truncate" title="${wbn.client}">${wbn.client}</td>
+                        <td>
+                            <div class="status-btn-group" role="group">
+                                <button type="button" class="status-btn ${isConnected ? 'active-connected' : ''}" data-status="Connected">Connected</button>
+                                <button type="button" class="status-btn ${isNotConnected ? 'active-not-connected' : ''}" data-status="Not Connected">Not Connected</button>
+                            </div>
+                            <div class="remarks-container">
+                            ${isNotConnected ? `
+                                <textarea class="remarks-textarea" placeholder="Enter remarks...">${storedState.remarks || ''}</textarea>
+                                <div class="remarks-tags">
+                                    <span class="remark-tag">Ops Failure</span>
+                                    <span class="remark-tag">Missing</span>
+                                    <span class="remark-tag">Uncontrollable</span>
+                                    <span class="remark-tag">System Issue</span>
+                                </div>
+                            ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `}).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+    
     // --- REPORTING FUNCTIONS ---
     function generateNTCReport(ntc) {
         const dataToUse = getCurrentlyVisibleData();
@@ -1335,11 +1411,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const { b2c_heavy_recommendation, b2b_recommendation } = ntcItem;
         const b2cCutoff = b2c_heavy_recommendation.cutoff;
         const b2bCutoff = b2b_recommendation.cutoff;
-       
+        
         let b2cList = [];
         if (b2cCutoff) {
             b2cList = dataToUse
                 .filter(r => r.ntc === ntc && r.pdt !== 'B2B' && r.age_hours >= parseFloat(b2cCutoff))
+                .sort((a, b) => b.age_hours - a.age_hours) // Sort oldest first
                 .map(item => item.bag_id);
         }
 
@@ -1347,13 +1424,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (b2bCutoff) {
             b2bList = dataToUse
                 .filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff))
+                .sort((a, b) => b.age_hours - a.age_hours) // Sort oldest first
                 .map(item => item.bag_id);
         }
-       
+        
         const reportDataForNTC = [{ ntc, b2cList, b2bList }];
         openDetailsModal(`Live Ageing Report for ${ntc}`, reportDataForNTC, false, 'ntc-report');
     }
-         
+            
     function generateLiveReport() {
         const dataToUse = getCurrentlyVisibleData();
         const summaryData = getSummaryData(dataToUse);
@@ -1366,14 +1444,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const reportData = summaryData.map(ntcItem => {
             const { ntc, b2c_heavy_recommendation, b2b_recommendation } = ntcItem;
-           
+            
             const b2cCutoff = b2c_heavy_recommendation.cutoff;
             const b2bCutoff = b2b_recommendation.cutoff;
-           
+            
             let b2cList = [];
             if (b2cCutoff) {
                 b2cList = dataToUse
                     .filter(r => r.ntc === ntc && r.pdt !== 'B2B' && r.age_hours >= parseFloat(b2cCutoff))
+                    .sort((a, b) => b.age_hours - a.age_hours) // Sort oldest first
                     .map(item => item.bag_id);
             }
 
@@ -1381,18 +1460,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (b2bCutoff) {
                 b2bList = dataToUse
                     .filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff))
+                    .sort((a, b) => b.age_hours - a.age_hours) // Sort oldest first
                     .map(item => item.bag_id);
             }
-           
+            
             if (b2cList.length > 0 || b2bList.length > 0) {
                  return { ntc, b2cList, b2bList };
             }
             return null;
         }).filter(Boolean);
-       
+        
         openDetailsModal("Live Ageing Report", reportData, false);
     }
-   
+    
     function formatReportText(reportData, filter) {
         const reportParts = [];
         reportData.forEach(ntcItem => {
@@ -1411,7 +1491,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ntcBlockParts.push(...b2bList);
                 hasContent = true;
             }
-           
+            
             if (hasContent) {
                 reportParts.push(ntcBlockParts.join("\n"));
             }
@@ -1455,7 +1535,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const updateReportView = (filter) => {
             reportTextarea.value = formatReportText(reportData, filter);
         };
-       
+        
         filterGroup.addEventListener('click', e => {
             const btn = e.target.closest('.report-filter-btn');
             if (btn) {
@@ -1490,7 +1570,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         modalActions.innerHTML = buttonsHTML;
     }
-   
+    
     function generatePDFReport() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
@@ -1514,7 +1594,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         reviewedNTCs.forEach(ntc => {
-            const ntcData = Object.entries(reviewDataStore)
+            let ntcData = Object.entries(reviewDataStore)
                 .map(([bagId, review]) => {
                     const itemData = fullForecastData.find(d => d.bag_id === bagId);
                     if (itemData && itemData.ntc === ntc) {
@@ -1522,8 +1602,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return null;
                 }).filter(item => item && item.status); // Only include items that have been reviewed
-           
+            
             if (ntcData.length === 0) return;
+
+            // Sort oldest first for the PDF report
+            ntcData.sort((a, b) => b.age_hours - a.age_hours);
 
             doc.setFontSize(14);
             doc.text(`Review for NTC: ${ntc}`, 14, finalY);
@@ -1542,7 +1625,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ];
                 tableRows.push(rowData);
             });
-           
+            
             doc.autoTable({
                 head: [tableColumn],
                 body: tableRows,
@@ -1573,9 +1656,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return results;
     }
-   
+    
     // --- SHARED & REFACTORED FUNCTIONS ---
-   
+    
     function getCurrentlyVisibleData() {
         if (!fullForecastData) return [];
         let data = fullForecastData;
@@ -1669,7 +1752,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detailsModalContent.innerHTML = '';
         detailsModalContent.appendChild(table);
     }
-   
+    
     function updateBulkSearchLinks(data) {
         const bags = [];
         const shipments = [];
@@ -1735,7 +1818,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLogModal.classList.remove('flex');
         modalCurrentData = [];
     }
-   
+    
     function copyPickLocations(button) {
         const locations = [...detailsModalContent.querySelectorAll('span')].map(span => span.textContent.trim());
         if (locations.length > 0) {
@@ -1757,7 +1840,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSummaryPanel() {
         // This entire function is part of LIVE MODE
         if (!fullForecastData) return;
-       
+        
         const dataToUse = getCurrentlyVisibleData();
         const summaryPanel = document.getElementById('summary-panel');
         generateLiveReportBtn.disabled = dataToUse.length === 0;
@@ -1770,14 +1853,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const showUrgentOnly = document.getElementById('show-urgent-toggle').checked;
         let summaryData = getSummaryData(dataToUse);
-       
+        
         renderCriticalSummary();
 
         if (showUrgentOnly) {
             const fiveHoursFromNow = new Date().getTime() + (5 * 60 * 60 * 1000);
             summaryData = summaryData.filter(item => item.data.soonestETD && item.data.soonestETD.getTime() < fiveHoursFromNow);
         }
-       
+        
         summaryData.sort((a, b) => {
             const aETD = a.data.soonestETD;
             const bETD = b.data.soonestETD;
@@ -1789,7 +1872,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return b.severityScore - a.severityScore;
         });
-       
+        
         if (summaryData.length === 0) {
             summaryPanel.innerHTML = `<p class="text-slate-400 text-center col-span-full">No NTCs match the current "Urgent Only" view.</p>`;
             return;
@@ -1801,10 +1884,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 count: (data.b2c_heavy[bucket] || 0) + (data.b2b[bucket] || 0)
             }));
             const etdString = data.soonestETD ? `ETD in ${getCountdownString(data.soonestETD)}` : 'No Upcoming ETD';
-           
+            
             const b2cCutoff = b2c_heavy_recommendation.cutoff;
             const b2bCutoff = b2b_recommendation.cutoff;
-           
+            
             let alertHTML = '';
             let b2cCount = 0;
             if (b2cCutoff) {
@@ -1860,7 +1943,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="stat-label">Max Age</div>
                         </div>
                     </div>
-                   
+                    
                     ${alertHTML}
 
                     <div class="age-stats-container">
@@ -1870,7 +1953,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="age-stat-value" data-ntc="${ntc}" data-bucket="${age.label}">${age.count}</span>
                             </div>`).join('')}
                     </div>
-                   
+                    
                     <div class="hotspot-footer">
                         <div class="hotspot-actions">
                              <div>
@@ -1894,12 +1977,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }).join('');
     }
-   
+    
     function renderCriticalSummary() {
         // This function is for LIVE MODE
         const container = document.getElementById('critical-summary-container');
         const dataToUse = getCurrentlyVisibleData();
-       
+        
         const criticalShipments = dataToUse.filter(r => r.age_hours >= 48);
 
         if (criticalShipments.length === 0) {
@@ -1924,7 +2007,7 @@ document.addEventListener('DOMContentLoaded', () => {
             acc[row.ntc][pdtGroup]++;
             return acc;
         }, {});
-       
+        
         const summaryList = Object.entries(summary).map(([ntc, counts]) => ({
             ntc,
             b2bCount: counts.b2b,
@@ -1945,7 +2028,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             </tr>
         `).join('');
-       
+        
         const rowCount = summaryList.length;
         const isCollapsible = rowCount > 5;
 
@@ -1986,4 +2069,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
