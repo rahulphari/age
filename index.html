@@ -6,7 +6,6 @@
     <title>AGE-SIGHT: Mission Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-    <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <style>
@@ -39,6 +38,254 @@
             transition: none !important;
             animation: none !important;
         }
+
+        /* --- NEW: Lite Mode Banner Style (when OFF) --- */
+        #lite-mode-toggle:not(.active) {
+            background-color: #f59e0b !important;
+            color: #000 !important;
+            font-weight: 700 !important;
+            border-color: #facc15 !important;
+        }
+        #lite-mode-toggle:not(.active):hover {
+            background-color: #facc15 !important;
+        }
+
+        /* --- NEW: LITE MODE OVERRIDES --- */
+        .lite-mode-active {
+            background: #000000 !important;
+            color: #eeeeee !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+        }
+
+        .lite-mode-active * {
+            /* --- CRITICAL EXCLUSIONS --- */
+            transition: none !important;
+            animation: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            background-image: none !important;
+            text-shadow: none !important;
+        }
+        
+        /* --- General Typography --- */
+        .lite-mode-active body, .lite-mode-active .main-container, .lite-mode-active p {
+             background: #000000 !important;
+             color: #eeeeee !important;
+             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+        }
+        .lite-mode-active h1, .lite-mode-active h2, .lite-mode-active h3, .lite-mode-active h4, .lite-mode-active h5, .lite-mode-active h6 {
+            color: #eeeeee !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+        }
+        .lite-mode-active h1 { /* Header override */
+            background: none !important;
+            color: #eeeeee !important;
+            -webkit-text-fill-color: #eeeeee !important;
+        }
+        .lite-mode-active a, .lite-mode-active .update-log-link {
+            color: #9e9eff !important;
+            text-decoration: underline !important;
+        }
+        .lite-mode-active span, .lite-mode-active div {
+             color: inherit; /* Inherit #eee from parent */
+        }
+        /* Fix text colors that are set explicitly */
+        .lite-mode-active .text-slate-200, .lite-mode-active .text-slate-300, .lite-mode-active .text-slate-400, .lite-mode-active .text-slate-500, .lite-mode-active .text-white, .lite-mode-active .text-f1f5f9, .lite-mode-active .text-f8fafc, .lite-mode-active .text-e2e8f0, .lite-mode-active .text-cbd5e1, .lite-mode-active .text-94a3b8, .lite-mode-active .text-64748b, .lite-mode-active .mode-subtitle {
+            color: #eeeeee !important;
+        }
+        .lite-mode-active .text-yellow-400, .lite-mode-active .text-facc15, .lite-mode-active .text-fde047, .lite-mode-active .text-yellow-300, .lite-mode-active .hotspot-etd-display, .lite-mode-active .clickable-count { color: #ffffa0 !important; }
+        .lite-mode-active .text-red-400, .lite-mode-active .text-f87171, .lite-mode-active .text-ef4444 { color: #ff8080 !important; }
+        .lite-mode-active .text-green-400, .lite-mode-active .text-4ade80, .lite-mode-active .text-22c55e, .lite-mode-active .text-green-600 { color: #80ff80 !important; }
+        .lite-mode-active .text-blue-400, .lite-mode-active .text-60a5fa, .lite-mode-active .text-3b82f6, .lite-mode-active .text-blue-300 { color: #9e9eff !important; }
+
+
+        /* --- Layout: Force single column --- */
+        .lite-mode-active .hotspot-grid,
+        .lite-mode-active .review-grid {
+            display: block !important;
+        }
+        .lite-mode-active .hotspot-card-v2,
+        .lite-mode-active .review-card {
+            margin-bottom: 1rem; /* Add spacing since grid-gap is gone */
+        }
+        /* Force block on most flex containers */
+        .lite-mode-active .flex { display: block !important; }
+        .lite-mode-active .flex-wrap { flex-wrap: nowrap !important; }
+        .lite-mode-active .flex-row { flex-direction: column !important; }
+        .lite-mode-active .justify-between { justify-content: flex-start !important; }
+        .lite-mode-active .items-center { align-items: flex-start !important; }
+        .lite-mode-active .items-end { align-items: flex-start !important; }
+        
+        /* Keep *some* flex for simple component layouts */
+        .lite-mode-active .mode-selector,
+        .lite-mode-active .status-btn-group,
+        .lite-mode-active .remarks-tags,
+        .lite-mode-active .report-filter-group,
+        .lite-mode-active .quick-stats,
+        .lite-mode-active .hotspot-actions {
+             display: flex !important;
+             flex-direction: row !important;
+        }
+        .lite-mode-active .quick-stat-item { text-align: left !important; }
+        .lite-mode-active .hotspot-actions { justify-content: flex-start !important; }
+
+
+        /* --- Borders & Backgrounds --- */
+        .lite-mode-active .main-container,
+        .lite-mode-active .hotspot-card-v2,
+        .lite-mode-active .review-card,
+        .lite-mode-active .modal-content,
+        .lite-mode-active .data-table,
+        .lite-mode-active .critical-summary-panel,
+        .lite-mode-active .mode-alert,
+        .lite-mode-active .upload-label,
+        .lite-mode-active .review-list-info,
+        .lite-mode-active .quick-stats,
+        .lite-mode-active .card-alert {
+            background: #000000 !important;
+            border: 1px solid #555555 !important;
+        }
+        /* Specific background overrides */
+        .lite-mode-active .hotspot-card-v2.severity-critical,
+        .lite-mode-active .hotspot-card-v2.severity-high,
+        .lite-mode-active .review-card.is-complete {
+             background: #000000 !important;
+             border: 1px solid #555555 !important;
+        }
+        .lite-mode-active .hotspot-card-v2.severity-critical { border-color: #ff8080 !important; }
+        .lite-mode-active .hotspot-card-v2.severity-high { border-color: #ffffa0 !important; }
+        .lite-mode-active .review-card.is-complete { border-color: #80ff80 !important; }
+
+        .lite-mode-active .bg-slate-800, .lite-mode-active .bg-slate-900, .lite-mode-active .bg-slate-800\/50, .lite-mode-active .bg-slate-700\/70,
+        .lite-mode-active .bg-slate-900\/60, .lite-mode-active .bg-black, .lite-mode-active .bg-slate-950, .lite-mode-active .bg-0f172a, .lite-mode-active .bg-1e293b, .lite-mode-active .bg-334155,
+        .lite-mode-active .bg-slate-700, .lite-mode-active .bg-blue-600, .lite-mode-active .bg-opacity-75 {
+            background: #000 !important;
+            background-color: #000 !important;
+        }
+
+
+        /* --- Buttons --- */
+        .lite-mode-active button,
+        .lite-mode-active .primary-btn,
+        .lite-mode-active .secondary-action-btn,
+        .lite-mode-active .lite-mode-btn,
+        .lite-mode-active .hotspot-action-btn,
+        .lite-mode-active .review-action-btn,
+        .lite-mode-active .mode-btn,
+        .lite-mode-active .ntc-report-btn,
+        .lite-mode-active .status-btn-group button,
+        .lite-mode-active .report-filter-btn,
+        .lite-mode-active .toggle-summary-btn {
+            background: #222222 !important;
+            color: #eeeeee !important;
+            border: 1px solid #777777 !important;
+            padding: 0.5em 1em !important;
+            transform: none !important;
+        }
+        .lite-mode-active button:hover:not(:disabled),
+        .lite-mode-active .primary-btn:hover:not(:disabled),
+        .lite-mode-active .secondary-action-btn:hover:not(:disabled),
+        .lite-mode-active .lite-mode-btn:hover:not(:disabled),
+        .lite-mode-active .hotspot-action-btn:hover:not(:disabled),
+        .lite-mode-active .review-action-btn:hover:not(:disabled),
+        .lite-mode-active .mode-btn:hover:not(:disabled),
+        .lite-mode-active .ntc-report-btn:hover:not(:disabled),
+        .lite-mode-active .status-btn-group button:hover:not(:disabled),
+        .lite-mode-active .report-filter-btn:hover:not(:disabled),
+        .lite-mode-active .toggle-summary-btn:hover:not(:disabled) {
+            background: #444444 !important;
+        }
+        /* Active/Selected State */
+        .lite-mode-active .lite-mode-btn.active,
+        .lite-mode-active .mode-btn.active,
+        .lite-mode-active .status-btn-group button.active-connected,
+        .lite-mode-active .status-btn-group button.active-not-connected,
+        .lite-mode-active .report-filter-btn.active {
+            background: #444444 !important;
+            font-weight: bold !important;
+        }
+        /* Special Button States */
+        .lite-mode-active .hotspot-action-btn.is-clear,
+        .lite-mode-active .review-card.is-complete .review-action-btn {
+            background: #222 !important;
+            border-color: #80ff80 !important;
+            color: #80ff80 !important;
+        }
+         .lite-mode-active button:disabled,
+         .lite-mode-active .primary-btn:disabled,
+         .lite-mode-active .hotspot-action-btn:disabled,
+         .lite-mode-active .review-action-btn:disabled {
+             background: #111 !important;
+             color: #555 !important;
+             border-color: #555 !important;
+             opacity: 1 !important;
+         }
+
+        /* --- Inputs --- */
+        .lite-mode-active input[type="password"],
+        .lite-mode-active input[type="text"],
+        .lite-mode-active .report-textarea,
+        .lite-mode-active .remarks-textarea {
+            background: #111111 !important;
+            color: #eeeeee !important;
+            border: 1px solid #777777 !important;
+        }
+
+        /* --- Form Elements (Toggles) --- */
+        .lite-mode-active .toggle-switch {
+            width: auto !important;
+            height: auto !important;
+            background: none !important;
+            position: static !important;
+        }
+        .lite-mode-active .toggle-switch span { /* Hide custom slider */
+            display: none !important;
+        }
+        .lite-mode-active .toggle-switch input[type="checkbox"] {
+            opacity: 1 !important;
+            width: auto !important;
+            height: auto !important;
+            position: static !important;
+            /* Use browser default styles */
+            -webkit-appearance: checkbox !important;
+            -moz-appearance: checkbox !important;
+            appearance: checkbox !important; 
+            margin-left: 5px !important;
+        }
+        .lite-mode-active label {
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* --- Icons --- */
+        .lite-mode-active svg {
+            display: none !important; /* Hide all SVGs */
+        }
+        /* Add text replacements */
+        .lite-mode-active .ntc-report-btn::after { content: "[Report]"; }
+        .lite-mode-active #closeUpdateLogModal::after,
+        .lite-mode-active #closeDetailsModal::after { content: "[Close]"; padding: 0.5em 1em; }
+        .lite-mode-active .card-alert-title::before { content: "[!]"; margin-right: 0.5em; font-weight: bold; }
+        .lite-mode-active .panel-header .toggle-icon::after { content: "[v]"; }
+        .lite-mode-active .panel-header .toggle-icon.rotate-180::after { content: "[^]"; }
+        .lite-mode-active #bulkSearchBtn::after { content: " [v]"; }
+        .lite-mode-active .all-clear-message::before { content: "[OK]"; font-size: 2rem; color: #80ff80; }
+        
+        /* --- Misc --- */
+        .lite-mode-active .review-progress-bar-bg { background: #555 !important; }
+        .lite-mode-active .review-progress-bar { background: #80ff80 !important; }
+        .lite-mode-active .age-stat { border-color: #555 !important; }
+        .lite-mode-active .hotspot-footer { border-color: #555 !important; }
+        .lite-mode-active .quick-stats { border-color: #555 !important; }
+        .lite-mode-active .review-card-header { border-color: #555 !important; }
+        .lite-mode-active footer { border-color: #555 !important; }
+        .lite-mode-active .data-table th, .lite-mode-active .data-table td { border-color: #555 !important; }
+        .lite-mode-active .critical-summary-panel .summary-table th,
+        .lite-mode-active .critical-summary-panel .summary-table td { border-color: #555 !important; }
+        .lite-mode-active .critical-summary-panel .panel-content { border-color: #ff8080 !important; }
+        /* --- END LITE MODE OVERRIDES --- */
+
 
         /* --- Animations & Transitions --- */
         @keyframes fadeInUp {
@@ -540,7 +787,7 @@
 <div class="main-container">
     <header class="text-center mb-12 flex justify-between items-center">
         <div id="top-left-actions" class="flex-1 text-left">
-            <button id="lite-mode-toggle" class="lite-mode-btn">Lite Mode</button>
+            <button id="lite-mode-toggle" class="lite-mode-btn">SLOW LOADING? SWITCH TO LITE MODE</button>
         </div>
         <div class="flex-grow">
             <h1 class="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-green-400 to-yellow-400">AGE-SIGHT</h1>
@@ -550,7 +797,6 @@
     </header>
 
     <div id="app-content">
-        <!-- Initial Upload View -->
         <div id="upload-view" class="max-w-2xl mx-auto text-center fade-in-up">
             <label for="csv-upload" id="upload-label" class="w-full cursor-pointer bg-slate-800/50 hover:bg-slate-700/70 border-2 border-dashed border-slate-600 rounded-lg flex flex-col items-center justify-center p-12 transition-all">
                 <svg class="w-16 h-16 text-slate-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" /></svg>
@@ -561,7 +807,6 @@
             <div id="message-area" class="mt-6 text-center"></div>
         </div>
 
-        <!-- Live Mode View -->
         <div id="live-mode-view" class="hidden space-y-8 fade-in-up">
             <div class="flex justify-center items-center gap-4">
                 <div id="mode-selector" class="mode-selector">
@@ -607,7 +852,6 @@
             <div id="summary-panel" class="hotspot-grid"></div>
         </div>
 
-        <!-- Review Mode View -->
         <div id="review-mode-view" class="hidden space-y-8 fade-in-up">
             <div id="review-mode-alert"></div>
             <div id="review-cards-container" class="review-grid"></div>
@@ -622,7 +866,6 @@
     </footer>
 </div>
 
-<!-- Details Modal -->
 <div id="detailsModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center p-4">
     <div class="modal-content bg-slate-900 p-6 rounded-lg shadow-2xl w-full max-w-7xl border border-slate-700 flex flex-col">
         <div class="flex justify-between items-center mb-4">
@@ -633,7 +876,6 @@
     </div>
 </div>
 
-<!-- Update Log Modal -->
 <div id="updateLogModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center p-4">
     <div class="modal-content bg-slate-900 p-6 rounded-lg shadow-2xl w-full max-w-2xl border border-slate-700 flex flex-col">
         <div class="flex justify-between items-center mb-4">
@@ -675,7 +917,6 @@
     </div>
 </div>
 
-<!-- Access Key Modal -->
 <div id="accessKeyModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center p-4">
     <div class="modal-content bg-slate-900 p-6 rounded-lg shadow-2xl w-full max-w-md border border-slate-700 flex flex-col">
         <h3 class="text-xl font-bold text-yellow-400 mb-2">Access Key Required</h3>
@@ -734,7 +975,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             document.body.classList.remove('lite-mode-active');
             liteModeToggle.classList.remove('active');
-            liteModeToggle.textContent = 'Lite Mode';
+            // MODIFIED: Changed default button text
+            liteModeToggle.textContent = 'SLOW LOADING? SWITCH TO LITE MODE';
         }
     }
 
@@ -1558,13 +1800,13 @@ document.addEventListener('DOMContentLoaded', () => {
                  <button id="bulkSearchBtn" class="primary-btn flex items-center gap-2">
                      <span>Bulk Search in HQ</span>
                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="bulk-search-dropdown" class="hidden absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 z-10">
-                    <div class="py-1">
-                        <a href="#" id="bulkSearchBagsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
-                        <a href="#" id="bulkSearchShipmentsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
-                    </div>
-                </div>
+                 </button>
+                 <div id="bulk-search-dropdown" class="hidden absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 z-10">
+                     <div class="py-1">
+                         <a href="#" id="bulkSearchBagsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
+                         <a href="#" id="bulkSearchShipmentsLink" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"></a>
+                     </div>
+                 </div>
             </div>
             <button id="closeDetailsModal" class="text-slate-400 hover:text-white ml-4"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
         `;
