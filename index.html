@@ -1406,7 +1406,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const b2bList = b2bCutoff ? dataToReview.filter(r => r.ntc === ntc && r.pdt === 'B2B' && r.age_hours >= parseFloat(b2bCutoff)).map(r => r.bag_id) : [];
 
                 const totalInReview = b2cList.length + b2bList.length;
-                if (totalInReview === 0) return ''; // Don't render a card if there's nothing to review
 
                 const reviewData = { b2c: b2cList, b2b: b2bList };
                 
